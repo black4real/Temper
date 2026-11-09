@@ -20,6 +20,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <div className="mx-auto flex h-16 w-full max-w-[1040px] items-center justify-between gap-6 px-5 sm:px-8">
           <Link
             href="/"
+            prefetch
             aria-label="Temper, today"
             className="-mx-1 rounded-[2px] px-1 py-1 transition-opacity hover:opacity-80"
           >

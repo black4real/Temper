@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { ALL_DAYS, DEFAULT_HABITS, HABIT_ICONS, type Habit, type HabitKind } from "./habits";
 
@@ -24,7 +25,7 @@ function toSchedule(value: unknown): number[] {
  * gracefully: if the `habits` table doesn't exist (migration 0002 not run) or has no rows, we
  * fall back to the default set so the app keeps working.
  */
-export async function getHabits(userId: string): Promise<HabitsResult> {
+export const getHabits = cache(async (userId: string): Promise<HabitsResult> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("habits")
@@ -57,7 +58,7 @@ export async function getHabits(userId: string): Promise<HabitsResult> {
   });
 
   return { habits, editable: true, v3 };
-}
+});
 
 /** Just the active slugs — used to sanitise writes against what the user actually has. */
 export async function getHabitSlugs(userId: string): Promise<string[]> {

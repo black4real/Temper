@@ -9,12 +9,17 @@ import { isScheduled, NOTE_MAX, type Habit } from "@/lib/ghost-mode/habits";
 import { computeDayNumber, dateForDay, formatLongDate, TOTAL_DAYS } from "@/lib/ghost-mode/day";
 import { saveDayRecord } from "@/lib/ghost-mode/actions";
 import { TEMPER_NAMES, temperIndex } from "@/lib/ghost-mode/temper";
-import { EMPTY_DAY, type DayMap } from "@/lib/ghost-mode/records";
+import { EMPTY_DAY, type DayEntry, type DayMap } from "@/lib/ghost-mode/records";
 import { streaks, weekdayFor } from "@/lib/ghost-mode/stats";
 import { useIsClient } from "@/lib/use-is-client";
 import { useHeat } from "@/motion/heat";
 import { TemperBar } from "@/components/temper/temper-bar";
 import { HabitIcon } from "@/components/temper/habit-icon";
+
+// The latest state of each day touched in this session. Pages are served from the prefetch
+// cache for speed, so the server props can be a little older than your last tap; this keeps
+// a revisit showing what you actually did. Cleared by a full reload.
+const liveDays = new Map<string, DayEntry>();
 
 type TodayBoardProps = {
   startDate: string;
@@ -46,7 +51,8 @@ export function TodayBoard(props: TodayBoardProps) {
 
 function TodayBoardClient({ startDate, initialDays, habits, layout = "blocks", v3 }: TodayBoardProps) {
   const [dayNumber] = useState(() => computeDayNumber(startDate));
-  const initial = initialDays[dayNumber] ?? EMPTY_DAY;
+  const liveKey = `${startDate}:${dayNumber}`;
+  const [initial] = useState<DayEntry>(() => liveDays.get(liveKey) ?? initialDays[dayNumber] ?? EMPTY_DAY);
   const [ids, setIds] = useState<Set<string>>(() => new Set(initial.ids));
   const [counts, setCounts] = useState<Record<string, number>>(() => ({ ...initial.counts }));
   const [note, setNote] = useState(initial.note);
@@ -102,6 +108,7 @@ function TodayBoardClient({ startDate, initialDays, habits, layout = "blocks", v
     const prevCounts = counts;
     setIds(nextIds);
     setCounts(nextCounts);
+    liveDays.set(liveKey, { ids: Array.from(nextIds), counts: nextCounts, note });
     const nextDone = scheduled.reduce((n, h) => (nextIds.has(h.slug) ? n + 1 : n), 0);
     if (total > 0 && nextDone >= total && done < total) setSweepKey((k) => k + 1); // the day sets
     persist({ ids: nextIds, counts: nextCounts }, () => {
@@ -131,6 +138,7 @@ function TodayBoardClient({ startDate, initialDays, habits, layout = "blocks", v
 
   function onNoteChange(value: string) {
     setNote(value);
+    liveDays.set(liveKey, { ids: Array.from(ids), counts, note: value });
     setNoteState("saving");
     if (noteTimer.current) clearTimeout(noteTimer.current);
     noteTimer.current = setTimeout(() => {

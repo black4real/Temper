@@ -32,6 +32,7 @@ export function AppNavDesktop() {
             <li key={item.href}>
               <Link
                 href={item.href}
+                prefetch
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative block py-2 text-sm font-medium transition-colors duration-200",
@@ -68,6 +69,7 @@ export function AppNavMobile() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
+                prefetch
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors active:bg-muted",

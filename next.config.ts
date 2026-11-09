@@ -6,12 +6,13 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   experimental: {
     // Every page here is dynamic, and the default client router cache for dynamic routes
-    // is 0s — so navigating back to a page you just viewed refetches it from the server
-    // (auth round-trip + queries) and feels slow. Reusing it briefly makes page turns
-    // instant; server actions still call revalidatePath, which busts this cache.
+    // is 0s, so each page turn waited on the server. The nav links prefetch full pages
+    // (prefetch={true}); these windows keep those prefetches and visited pages reusable so
+    // page turns are instant. Server actions call revalidatePath, which busts this cache
+    // whenever data changes.
     staleTimes: {
-      dynamic: 30,
-      static: 180,
+      dynamic: 120,
+      static: 300,
     },
   },
   turbopack: {

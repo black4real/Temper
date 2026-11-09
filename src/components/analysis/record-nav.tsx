@@ -15,6 +15,7 @@ export function RecordNav({ current }: { current: "record" | "week" }) {
           <Link
             key={item.key}
             href={item.href}
+            prefetch
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex h-10 items-center px-4 text-sm font-medium outline-none transition-colors not-first:border-l not-first:border-input",
