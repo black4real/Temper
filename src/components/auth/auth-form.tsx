@@ -140,7 +140,7 @@ export function AuthForm() {
         {mode === "signup" ? "Already have an account?" : "Have an invite?"}{" "}
         <button
           type="button"
-          className="font-medium text-foreground underline decoration-1 underline-offset-4 hover:decoration-2"
+          className="inline-flex min-h-10 items-center font-medium text-foreground underline decoration-1 underline-offset-4 hover:decoration-2"
           onClick={() => {
             setMode(mode === "signup" ? "signin" : "signup");
             setNotice(null);

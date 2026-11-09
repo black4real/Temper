@@ -1,11 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth", "/offline"];
+// The app's own routes. Signed-out visitors to these go to /login. Anything else (an address
+// that doesn't exist) falls through to the designed 404 with a real 404 status, instead of
+// being bounced to the login page as a 200. Server components re-check auth regardless.
+const PROTECTED_PREFIXES = ["/speaking", "/analysis", "/settings", "/import", "/api"];
+
+function isProtected(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
 
 /**
- * Refreshes the Supabase auth session on every request and gates protected routes.
- * Unauthenticated users are redirected to /login (except for public paths and assets).
+ * Refreshes the Supabase auth session on every request and gates the app's routes.
+ * Unauthenticated users hitting a protected route are redirected to /login.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -38,10 +46,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const signedIn = !!data?.claims?.sub;
 
-  const pathname = request.nextUrl.pathname;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-
-  if (!signedIn && !isPublic) {
+  if (!signedIn && isProtected(request.nextUrl.pathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     return NextResponse.redirect(redirectUrl);

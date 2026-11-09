@@ -4,7 +4,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { TemperMark } from "@/components/app/wordmark";
 import { Blade, type BladeBand } from "@/components/temper/blade";
 
-export const metadata = { title: "Sign in" };
+export const metadata = { title: "Sign in", alternates: { canonical: "/login" } };
 
 // An illustrative blade for the sign-in screen: worked days heating up over time, then the
 // untouched future. Brand art, not anyone's record.
@@ -34,7 +34,7 @@ export default async function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <h1 className="font-display text-[clamp(72px,15vw,196px)] leading-[0.8] font-extrabold tracking-[-0.06em]">
+          <h1 className="font-display text-[clamp(60px,11vw,136px)] leading-[0.8] font-extrabold tracking-[-0.06em]">
             Temper
           </h1>
           <p className="max-w-[34ch] text-lg leading-snug text-muted-foreground sm:text-xl">
