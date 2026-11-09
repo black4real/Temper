@@ -18,8 +18,8 @@ export function RecordNav({ current }: { current: "record" | "week" }) {
             prefetch
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex h-10 items-center px-4 text-sm font-medium outline-none transition-colors not-first:border-l not-first:border-input",
-              "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+              "flex h-10 items-center px-4 text-sm font-medium outline-hidden transition-colors not-first:border-l not-first:border-input",
+              "focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring",
               active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

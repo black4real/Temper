@@ -186,7 +186,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   html {
     @apply font-sans;
@@ -251,6 +251,13 @@
       repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px),
       linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.18));
   }
+}
+
+/* Focus rings are always the system's ring color (tempered blue), at full strength.
+   Unlayered on purpose so no layered base/utility rule can fade or recolor it; components
+   still choose width and offset. */
+:focus-visible {
+  outline-color: var(--ring);
 }
 
 /* ---------------------------------------------------------------------------

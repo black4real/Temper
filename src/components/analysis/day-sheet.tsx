@@ -123,7 +123,7 @@ export function DaySheet({
                     type="button"
                     aria-pressed={isDone}
                     onClick={() => toggle(h)}
-                    className="flex w-full items-center gap-3 border-b border-border px-1 py-3 text-left outline-none hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                    className="flex w-full items-center gap-3 border-b border-border px-1 py-3 text-left outline-hidden hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   >
                     <span
                       aria-hidden
@@ -161,7 +161,7 @@ export function DaySheet({
               maxLength={NOTE_MAX}
               onChange={(e) => setNote(e.target.value)}
               placeholder="One line about this day"
-              className="h-10 w-full border-0 border-b border-input bg-transparent text-[15px] outline-none placeholder:text-muted-foreground focus-visible:border-foreground"
+              className="h-10 w-full border-0 border-b border-input bg-transparent text-[15px] outline-hidden placeholder:text-muted-foreground focus-visible:border-foreground"
             />
           </div>
         )}

@@ -157,8 +157,8 @@ function SpeakingSessionClient({
                 aria-pressed={stage === s}
                 aria-label={`Stage ${s}`}
                 className={cn(
-                  "font-data relative h-11 text-sm outline-none transition-colors not-first:border-l not-first:border-input disabled:opacity-45",
-                  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                  "font-data relative h-11 text-sm outline-hidden transition-colors not-first:border-l not-first:border-input disabled:opacity-45",
+                  "focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring",
                   stage === s ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
@@ -334,7 +334,7 @@ function Recorder({
               onChange={(e) => recorder.setTranscript(e.target.value)}
               rows={6}
               placeholder="Type or correct what you said"
-              className="w-full resize-y rounded-[2px] border border-input bg-background p-3 text-[15px] leading-relaxed outline-none focus-visible:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="w-full resize-y rounded-[2px] border border-input bg-background p-3 text-[15px] leading-relaxed outline-hidden focus-visible:border-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring"
             />
           </div>
 

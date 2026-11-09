@@ -126,13 +126,13 @@ export function Blade({
                 onClick={() => selectable && onSelect?.(b.day)}
                 className={cn(
                   "band relative h-8 rounded-[1px] transition-[translate,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-full",
-                  "outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+                  "outline-hidden focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-ring",
                   "hover:-translate-y-1 focus-visible:-translate-y-1",
                   future && "opacity-40",
                   b.dim && "opacity-25",
                   selectable ? "cursor-pointer" : "cursor-default",
-                  b.state === "today" && "outline-2 -outline-offset-2 outline-ember",
-                  selectedDay === b.day && "outline-2 outline-offset-1 outline-foreground",
+                  b.state === "today" && "outline-2 outline-solid -outline-offset-2 outline-ember",
+                  selectedDay === b.day && "outline-2 outline-solid outline-offset-1 outline-foreground",
                 )}
                 style={{
                   backgroundColor: temperColor(future ? 0 : b.index),

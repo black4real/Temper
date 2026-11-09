@@ -46,7 +46,7 @@ export default async function SpeakingHistoryPage() {
   );
 
   return (
-    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[880px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
+    <main id="main" tabIndex={-1} className="outline-hidden mx-auto w-full max-w-[880px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
       <PageTitle
         title="Past sessions"
         lede="Every session you saved, newest first, with its transcript and recording."

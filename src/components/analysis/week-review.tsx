@@ -96,7 +96,7 @@ function WeekReviewClient({ startDate, days, habits, spokenSeconds }: Props) {
               aria-label="Previous week"
               disabled={week === 0}
               onClick={() => setWeek((w) => Math.max(0, w - 1))}
-              className="flex size-10 items-center justify-center outline-none hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-35"
+              className="flex size-10 items-center justify-center outline-hidden hover:bg-muted focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-35"
             >
               <ChevronLeft aria-hidden className="size-4" />
             </button>
@@ -105,7 +105,7 @@ function WeekReviewClient({ startDate, days, habits, spokenSeconds }: Props) {
               aria-label="Next week"
               disabled={week >= Math.min(currentWeek, WEEKS - 1)}
               onClick={() => setWeek((w) => Math.min(currentWeek, w + 1))}
-              className="flex size-10 items-center justify-center border-l border-input outline-none hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-35"
+              className="flex size-10 items-center justify-center border-l border-input outline-hidden hover:bg-muted focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-35"
             >
               <ChevronRight aria-hidden className="size-4" />
             </button>

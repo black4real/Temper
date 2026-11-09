@@ -272,8 +272,8 @@ function HabitForm({
                     aria-label={DAY_NAMES[d]}
                     onClick={() => toggleDay(d)}
                     className={cn(
-                      "flex size-10 items-center justify-center border text-sm font-medium outline-none transition-colors",
-                      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                      "flex size-10 items-center justify-center border text-sm font-medium outline-hidden transition-colors",
+                      "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring",
                       on ? "border-foreground bg-foreground text-background" : "border-input text-muted-foreground hover:text-foreground",
                     )}
                   >
@@ -391,8 +391,8 @@ function IconChoice({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        "flex h-10 min-w-10 items-center justify-center border px-2 outline-none transition-colors",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "flex h-10 min-w-10 items-center justify-center border px-2 outline-hidden transition-colors",
+        "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring",
         selected ? "border-foreground bg-foreground text-background" : "border-input text-muted-foreground hover:text-foreground",
       )}
     >
@@ -418,7 +418,7 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex size-7 items-center justify-center rounded-[2px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
+      className="flex size-7 items-center justify-center rounded-[2px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
     >
       {children}
     </button>

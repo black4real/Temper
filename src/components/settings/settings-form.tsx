@@ -252,8 +252,8 @@ function Segmented<T extends string>({
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
           className={cn(
-            "h-10 px-4 text-sm font-medium outline-none transition-colors not-first:border-l not-first:border-input",
-            "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+            "h-10 px-4 text-sm font-medium outline-hidden transition-colors not-first:border-l not-first:border-input",
+            "focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring",
             value === opt.value ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
         >

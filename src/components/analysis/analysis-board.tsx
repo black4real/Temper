@@ -217,8 +217,8 @@ function AnalysisBoardClient({
                   aria-pressed={active}
                   onClick={() => setFocusSlug(active ? null : habit.slug)}
                   className={cn(
-                    "group flex w-full flex-col gap-2.5 border-b border-border py-4 text-left outline-none transition-colors",
-                    "hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                    "group flex w-full flex-col gap-2.5 border-b border-border py-4 text-left outline-hidden transition-colors",
+                    "hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring",
                     active && "bg-muted/50",
                   )}
                 >

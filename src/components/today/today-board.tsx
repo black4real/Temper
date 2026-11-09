@@ -219,9 +219,9 @@ function TodayBoardClient({ startDate, initialDays, habits, layout = "blocks", v
           </h2>
           <Link
             href="/settings#commitments"
-            className="text-sm text-muted-foreground underline decoration-1 underline-offset-4 transition-colors hover:text-foreground hover:decoration-2"
+            className="-mr-2 inline-flex min-h-10 items-center px-2 text-sm text-muted-foreground underline decoration-1 underline-offset-4 transition-colors hover:text-foreground hover:decoration-2"
           >
-            Edit
+            Edit<span className="sr-only"> commitments</span>
           </Link>
         </div>
 
@@ -270,7 +270,7 @@ function TodayBoardClient({ startDate, initialDays, habits, layout = "blocks", v
             maxLength={NOTE_MAX}
             onChange={(e) => onNoteChange(e.target.value)}
             placeholder="One line about today"
-            className="h-12 w-full border-0 border-b border-input bg-transparent px-0 text-[17px] outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-foreground"
+            className="h-12 w-full border-0 border-b border-input bg-transparent px-0 text-[17px] outline-hidden transition-colors placeholder:text-muted-foreground focus-visible:border-foreground"
           />
         </section>
       )}
@@ -322,7 +322,7 @@ function CommitmentRow({
   );
 
   const rowBase =
-    "group relative flex w-full select-none items-center gap-4 border-b border-border py-4 pr-2 pl-5 text-left outline-none transition-colors duration-150 hover:bg-muted/40";
+    "group relative flex w-full select-none items-center gap-4 border-b border-border py-4 pr-2 pl-5 text-left outline-hidden transition-colors duration-150 hover:bg-muted/40";
 
   if (counted) {
     const unit = habit.unit ? ` ${habit.unit}` : "";
@@ -349,15 +349,18 @@ function CommitmentRow({
 
   const interactive = cn(
     rowBase,
-    "cursor-pointer touch-manipulation focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring active:bg-muted/70",
+    "cursor-pointer touch-manipulation focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring active:bg-muted/70",
   );
 
   if (habit.kind === "link" && habit.href) {
     return (
-      <Link href={habit.href} className={interactive} aria-label={`${habit.title}, ${done ? "done" : "not done"}, open practice`}>
+      // No aria-label: the accessible name is the visible text (title, detail, "Practice") plus a
+      // screen-reader-only status, so voice control users can say what they see.
+      <Link href={habit.href} className={interactive}>
         {edge}
         <Check done={done} link />
         {label}
+        <span className="sr-only">{done ? ", done today" : ", not done yet"}</span>
         <span className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground transition-colors group-hover:text-foreground">
           Practice
           <svg viewBox="0 0 24 24" className="size-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -411,7 +414,7 @@ function StepButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="flex size-10 touch-manipulation items-center justify-center border border-input text-foreground outline-none transition-[background-color,color,scale] duration-150 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 disabled:pointer-events-none disabled:opacity-35"
+      className="flex size-10 touch-manipulation items-center justify-center border border-input text-foreground outline-hidden transition-[background-color,color,scale] duration-150 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 disabled:pointer-events-none disabled:opacity-35"
     >
       {children}
     </button>

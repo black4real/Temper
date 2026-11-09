@@ -7,7 +7,7 @@ export default function OfflinePage() {
     <main
       id="main"
       tabIndex={-1}
-      className="mx-auto flex min-h-dvh w-full max-w-[1040px] flex-col justify-between px-5 py-8 outline-none sm:px-8"
+      className="mx-auto flex min-h-dvh w-full max-w-[1040px] flex-col justify-between px-5 py-8 outline-hidden sm:px-8"
     >
       <Wordmark />
       <div className="flex flex-col gap-6 py-16">

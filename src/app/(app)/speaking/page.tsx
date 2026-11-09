@@ -27,7 +27,7 @@ export default async function SpeakingPage() {
   const totalSuccessful = sessions.filter((s) => s.completedTarget).length;
 
   return (
-    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[1040px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
+    <main id="main" tabIndex={-1} className="outline-hidden mx-auto w-full max-w-[1040px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
       <PageTitle
         title="Speaking"
         lede="Talk on the topic until the bar reaches the target. Hit the target and today's speaking commitment is done."

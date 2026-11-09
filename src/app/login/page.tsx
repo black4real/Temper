@@ -25,7 +25,7 @@ export default async function LoginPage() {
     <main
       id="main"
       tabIndex={-1}
-      className="mx-auto grid min-h-dvh w-full max-w-[1200px] grid-rows-[1fr_auto] px-5 py-8 outline-none sm:px-10 lg:grid-cols-12 lg:grid-rows-1 lg:gap-12 lg:py-12"
+      className="mx-auto grid min-h-dvh w-full max-w-[1200px] grid-rows-[1fr_auto] px-5 py-8 outline-hidden sm:px-10 lg:grid-cols-12 lg:grid-rows-1 lg:gap-12 lg:py-12"
     >
       <section className="flex flex-col justify-between gap-10 lg:col-span-7">
         <div className="flex items-center gap-2.5">
