@@ -4,9 +4,12 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   DEFAULT_HABITS,
+  HABIT_ICONS,
   MAX_HABITS,
+  TARGET_MAX,
   TITLE_MAX,
   DETAIL_MAX,
+  UNIT_MAX,
   slugify,
 } from "@/lib/ghost-mode/habits";
 
@@ -14,16 +17,52 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 
 async function auth() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { supabase, user };
+  const { data } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub as string | undefined;
+  return { supabase, user: sub ? { id: sub } : null };
 }
 
 function revalidateAll() {
   revalidatePath("/");
   revalidatePath("/analysis");
+  revalidatePath("/analysis/week");
   revalidatePath("/settings");
+}
+
+/** Optional 0003 fields: schedule, counted target + unit, icon. */
+export type HabitExtras = {
+  scheduleDays?: number[];
+  target?: number | null;
+  unit?: string | null;
+  icon?: string | null;
+};
+
+const ICONS = new Set<string>(HABIT_ICONS);
+
+/** Validates the 0003 fields; only keys that were sent are returned (so they're only written then). */
+function cleanExtras(input: HabitExtras, isLink: boolean): Record<string, unknown> | { error: string } {
+  const out: Record<string, unknown> = {};
+  if (input.scheduleDays !== undefined) {
+    const days = Array.from(new Set(input.scheduleDays.map(Number))).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+    if (days.length === 0) return { error: "Pick at least one day for this commitment." };
+    out.schedule_days = days.sort((a, b) => a - b);
+  }
+  if (input.target !== undefined) {
+    if (input.target === null || isLink) {
+      out.target = null;
+      out.unit = null;
+    } else {
+      const t = Math.trunc(Number(input.target));
+      if (!Number.isFinite(t) || t < 1 || t > TARGET_MAX) return { error: `Targets go from 1 to ${TARGET_MAX}.` };
+      out.target = t;
+      const unit = typeof input.unit === "string" ? input.unit.trim().slice(0, UNIT_MAX) : "";
+      out.unit = unit || null;
+    }
+  }
+  if (input.icon !== undefined) {
+    out.icon = input.icon && ICONS.has(input.icon) ? input.icon : null;
+  }
+  return out;
 }
 
 function cleanTitle(v: unknown): string {
@@ -58,7 +97,7 @@ export async function seedDefaultHabits(): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function createHabit(input: { title: string; detail: string }): Promise<ActionResult> {
+export async function createHabit(input: { title: string; detail: string } & HabitExtras): Promise<ActionResult> {
   const { supabase, user } = await auth();
   if (!user) return { ok: false, error: "Not signed in." };
 
@@ -86,6 +125,9 @@ export async function createHabit(input: { title: string; detail: string }): Pro
 
   const nextPosition = rows.reduce((max, r) => Math.max(max, (r.position as number) ?? 0), -1) + 1;
 
+  const extras = cleanExtras(input, false);
+  if ("error" in extras) return { ok: false, error: extras.error as string };
+
   const { error } = await supabase.from("habits").insert({
     user_id: user.id,
     slug,
@@ -95,6 +137,7 @@ export async function createHabit(input: { title: string; detail: string }): Pro
     kind: "checkbox",
     href: null,
     is_system: false,
+    ...extras,
   });
 
   if (error) return { ok: false, error: friendly(error.message) };
@@ -102,11 +145,13 @@ export async function createHabit(input: { title: string; detail: string }): Pro
   return { ok: true };
 }
 
-export async function updateHabit(input: {
-  slug: string;
-  title: string;
-  detail: string;
-}): Promise<ActionResult> {
+export async function updateHabit(
+  input: {
+    slug: string;
+    title: string;
+    detail: string;
+  } & HabitExtras,
+): Promise<ActionResult> {
   const { supabase, user } = await auth();
   if (!user) return { ok: false, error: "Not signed in." };
 
@@ -114,10 +159,14 @@ export async function updateHabit(input: {
   const detail = cleanDetail(input.detail);
   if (!title) return { ok: false, error: "Give the commitment a name." };
 
-  // Title/detail are editable for any habit (including the system one); slug/kind/href are not.
+  // Title, detail, schedule and icon are editable for any habit (including the system one);
+  // slug, kind and href are not, and a link habit (speaking) can't be counted.
+  const extras = cleanExtras(input, input.slug === "speaking");
+  if ("error" in extras) return { ok: false, error: extras.error as string };
+
   const { error } = await supabase
     .from("habits")
-    .update({ title, detail, updated_at: new Date().toISOString() })
+    .update({ title, detail, ...extras, updated_at: new Date().toISOString() })
     .eq("user_id", user.id)
     .eq("slug", input.slug);
 
@@ -190,8 +239,11 @@ export async function moveHabit(input: {
 }
 
 function friendly(message: string): string {
-  if (/relation .*habits.* does not exist/i.test(message) || /schema cache/i.test(message)) {
-    return "The commitments table isn't set up yet — run the latest database migration (see DEPLOY.md).";
+  if (/relation .*habits.* does not exist/i.test(message)) {
+    return "The commitments table isn't set up yet. Run migration 0002 in Supabase (see DEPLOY.md).";
+  }
+  if (/column .*(schedule_days|target|unit|icon)|schema cache/i.test(message)) {
+    return "Schedules, counts and icons need the latest database update. Run migration 0003 in Supabase (see DEPLOY.md).";
   }
   return message;
 }

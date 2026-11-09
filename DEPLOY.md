@@ -19,7 +19,9 @@ browser or committed. `.env.local` is gitignored.
 1. Create a project at https://supabase.com (Free tier).
 2. SQL Editor → run `supabase/migrations/0001_init.sql` (tables, RLS, profile trigger, the
    private `recordings` bucket), then run `supabase/migrations/0002_custom_habits.sql` (the
-   per-user `habits` table, RLS, default-commitments seed, and signup seeding). Run them in order.
+   per-user `habits` table, RLS, default-commitments seed, and signup seeding), then
+   `supabase/migrations/0003_temper_features.sql` (weekday schedules, counted commitments,
+   icons, and daily notes). Run them in order; each is safe to re-run.
 3. **Authentication → URL Configuration:**
    - Site URL: your production URL (`NEXT_PUBLIC_SITE_URL`).
    - Redirect URLs: add `https://YOUR-DOMAIN/auth/confirm` (and `http://localhost:3000/auth/confirm`

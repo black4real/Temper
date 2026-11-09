@@ -8,13 +8,13 @@ export const metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const { user, profile } = await getProfile();
-  const { habits, editable } = await getHabits(user.id);
+  const { habits, editable, v3 } = await getHabits(user.id);
 
   return (
     <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[880px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
       <PageTitle title="Settings" className="mb-12" />
       <div className="flex flex-col gap-16">
-        <HabitsEditor habits={habits} editable={editable} />
+        <HabitsEditor habits={habits} editable={editable} v3={v3} />
         <SettingsForm profile={profile} />
       </div>
     </main>

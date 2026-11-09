@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { formatDuration, stageTitle } from "@/lib/ghost-mode/speaking";
 import { deleteSpeakingSession } from "@/lib/ghost-mode/speaking-actions";
+import { speakingStats } from "@/lib/ghost-mode/speaking-stats";
 
 export type HistoryItem = {
   id: string;
@@ -56,6 +57,7 @@ function SessionCard({ item }: { item: HistoryItem }) {
     });
   }
 
+  const stats = speakingStats(item.transcript, item.actualDurationSeconds);
   const long = item.transcript.length > 180;
   const shown = expanded || !long ? item.transcript : `${item.transcript.slice(0, 180)}…`;
 
@@ -82,6 +84,23 @@ function SessionCard({ item }: { item: HistoryItem }) {
         {formatDuration(item.actualDurationSeconds)} of {formatDuration(item.targetDurationSeconds)}
         {item.curveballs.length > 0 && ` · ${item.curveballs.join(", ")}`}
       </p>
+
+      {stats.words > 0 && (
+        <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">Pace</dt>
+            <dd className="font-data">{stats.wpm !== null ? `${stats.wpm} wpm` : "too short"}</dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">Fillers</dt>
+            <dd className="font-data">{stats.fillers}</dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">Words</dt>
+            <dd className="font-data">{stats.words}</dd>
+          </div>
+        </dl>
+      )}
 
       {item.transcript ? (
         <div>

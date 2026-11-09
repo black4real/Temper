@@ -1,20 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useIsClient } from "@/lib/use-is-client";
-import { sanitizeHabitIds, type Habit } from "@/lib/ghost-mode/habits";
+import { isScheduled, type Habit } from "@/lib/ghost-mode/habits";
 import { computeDayNumber, dateForDay, parseLocalDate, TOTAL_DAYS } from "@/lib/ghost-mode/day";
 import { TEMPER_NAMES, temperColor, temperIndex } from "@/lib/ghost-mode/temper";
+import type { DayEntry, DayMap } from "@/lib/ghost-mode/records";
+import { dayProgress, scheduledFor, streaks, weekdayFor } from "@/lib/ghost-mode/stats";
 import { Blade, type BladeBand } from "@/components/temper/blade";
+import { DaySheet } from "@/components/analysis/day-sheet";
+import { RecordNav } from "@/components/analysis/record-nav";
 
 type Props = {
   startDate: string;
-  records: Record<number, string[]>;
+  days: DayMap;
   habits: Habit[];
+  v3: boolean;
   speakingStage: number;
   speakingSuccessesAtStage: number;
   speakingTotalSuccessful: number;
+  averageWpm: number | null;
 };
 
 export function AnalysisBoard(props: Props) {
@@ -35,44 +42,58 @@ const shortDate = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "n
 
 function AnalysisBoardClient({
   startDate,
-  records,
+  days: serverDays,
   habits,
+  v3,
   speakingStage,
   speakingSuccessesAtStage,
   speakingTotalSuccessful,
+  averageWpm,
 }: Props) {
+  const router = useRouter();
   const currentDay = useMemo(() => computeDayNumber(startDate), [startDate]);
   const elapsed = Math.min(currentDay, TOTAL_DAYS);
-  const total = habits.length;
-  const slugSet = useMemo(() => new Set(habits.map((h) => h.slug)), [habits]);
+  const [overrides, setOverrides] = useState<DayMap>({});
+  const days = useMemo(() => ({ ...serverDays, ...overrides }), [serverDays, overrides]);
   const [focusSlug, setFocusSlug] = useState<string | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
 
-  const doneOn = useMemo(() => {
-    const map = new Map<number, string[]>();
-    for (let d = 1; d <= elapsed; d++) map.set(d, sanitizeHabitIds(records[d] ?? [], slugSet));
+  const progress = useMemo(() => {
+    const map = new Map<number, ReturnType<typeof dayProgress>>();
+    for (let d = 1; d <= elapsed; d++) map.set(d, dayProgress(days[d], scheduledFor(habits, startDate, d)));
     return map;
-  }, [records, elapsed, slugSet]);
+  }, [days, elapsed, habits, startDate]);
 
   const metrics = useMemo(() => {
-    let completedDays = 0;
-    let totalCompleted = 0;
-    for (let d = 1; d <= elapsed; d++) {
-      const c = doneOn.get(d)?.length ?? 0;
-      totalCompleted += c;
-      if (total > 0 && c >= total) completedDays += 1;
+    let set = 0;
+    let doneSum = 0;
+    let possible = 0;
+    for (const p of progress.values()) {
+      if (p.rest) continue;
+      doneSum += p.done;
+      possible += p.total;
+      if (p.done >= p.total) set += 1;
     }
-    const possible = Math.max(1, elapsed) * Math.max(1, total);
-    return { completedDays, adherence: Math.round((totalCompleted / possible) * 100) };
-  }, [doneOn, elapsed, total]);
+    return { set, adherence: possible > 0 ? Math.round((doneSum / possible) * 100) : 0 };
+  }, [progress]);
 
-  const habitBreakdown = useMemo(() => {
-    const base = Math.max(1, elapsed);
-    return habits.map((habit) => {
-      let done = 0;
-      for (let d = 1; d <= elapsed; d++) if (doneOn.get(d)?.includes(habit.slug)) done += 1;
-      return { habit, done, base, pct: Math.round((done / base) * 100) };
-    });
-  }, [doneOn, elapsed, habits]);
+  const streak = useMemo(() => streaks(habits, startDate, days, currentDay), [habits, startDate, days, currentDay]);
+
+  // Per commitment: hits over the days it was actually scheduled.
+  const habitBreakdown = useMemo(
+    () =>
+      habits.map((habit) => {
+        let done = 0;
+        let base = 0;
+        for (let d = 1; d <= elapsed; d++) {
+          if (!isScheduled(habit, weekdayFor(startDate, d))) continue;
+          base += 1;
+          if (days[d]?.ids.includes(habit.slug)) done += 1;
+        }
+        return { habit, done, base, pct: base > 0 ? Math.round((done / base) * 100) : 0 };
+      }),
+    [habits, elapsed, startDate, days],
+  );
 
   const focusHabit = focusSlug ? habits.find((h) => h.slug === focusSlug) ?? null : null;
 
@@ -84,41 +105,52 @@ function AnalysisBoardClient({
         if (day > currentDay) {
           return { day, index: 0, state: "future" as const, label: `Day ${day} · ${when} · not worked yet` };
         }
-        const ids = doneOn.get(day) ?? [];
         const state = day === currentDay ? ("today" as const) : ("past" as const);
+        const suffix = day === currentDay ? " · today" : "";
         if (focusHabit) {
-          const hit = ids.includes(focusHabit.slug);
+          const on = isScheduled(focusHabit, weekdayFor(startDate, day));
+          const hit = !!days[day]?.ids.includes(focusHabit.slug);
           return {
             day,
             index: hit ? 6 : 0,
             state,
             dim: !hit,
-            label: `Day ${day} · ${when} · ${focusHabit.title} ${hit ? "done" : "missed"}`,
+            label: `Day ${day} · ${when} · ${focusHabit.title} ${!on ? "not scheduled" : hit ? "done" : "missed"}${suffix}`,
           };
         }
-        const index = temperIndex(total > 0 ? ids.length / total : 0);
+        const p = progress.get(day)!;
+        const index = temperIndex(p.ratio);
+        const note = days[day]?.note ? ` · “${days[day]!.note}”` : "";
         return {
           day,
           index,
           state,
-          label: `Day ${day} · ${when} · ${TEMPER_NAMES[index]}, ${ids.length} of ${total}${day === currentDay ? " · today" : ""}`,
+          label: p.rest
+            ? `Day ${day} · ${when} · rest day${suffix}`
+            : `Day ${day} · ${when} · ${TEMPER_NAMES[index]}, ${p.done} of ${p.total}${suffix}${note}`,
         };
       }),
-    [startDate, currentDay, doneOn, total, focusHabit],
+    [startDate, currentDay, days, focusHabit, progress],
   );
+
+  function onSaved(day: number, entry: DayEntry) {
+    setOverrides((o) => ({ ...o, [day]: entry }));
+    router.refresh();
+  }
 
   return (
     <div className="flex flex-col gap-14">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-3">
           <h1 className="font-display text-[clamp(44px,8vw,88px)] leading-[0.86] font-extrabold tracking-[-0.045em]">
             Record
           </h1>
           <p className="max-w-[52ch] text-[15px] text-muted-foreground">
             Every day you work leaves its color in the blade. Bare steel is a missed day; blue is a day
-            where everything got done.
+            where everything scheduled got done. Select a past day to fix it.
           </p>
         </div>
+        <RecordNav current="record" />
       </header>
 
       {/* The blade */}
@@ -139,11 +171,13 @@ function AnalysisBoardClient({
         </div>
         <Blade
           bands={bands}
-          label="120 day record. Use the arrow keys to move between days."
+          onSelect={(day) => setEditing(day)}
+          selectedDay={editing}
+          label="120 day record. Use the arrow keys to move between days, Enter to edit one."
           idleText={
             focusHabit
               ? `${focusHabit.title}: blue where you did it, bare where you didn't.`
-              : "Select a day to read it."
+              : "Select a day to read it or fix it."
           }
         />
         <TemperScale />
@@ -152,13 +186,13 @@ function AnalysisBoardClient({
       {/* Stamped figures */}
       <section aria-label="Overview">
         <dl className="grid grid-cols-2 border-y border-border sm:grid-cols-4">
-          <Figure label="Day" value={`${Math.min(currentDay, TOTAL_DAYS)}`} sub={`of ${TOTAL_DAYS}`} />
-          <Figure label="Adherence" value={`${metrics.adherence}%`} sub="of all commitments" />
-          <Figure label="Days set" value={`${metrics.completedDays}`} sub={`of ${elapsed} so far`} />
+          <Figure label="Streak" value={`${streak.current}`} sub={`best ${streak.best} days`} />
+          <Figure label="Adherence" value={`${metrics.adherence}%`} sub="of scheduled commitments" />
+          <Figure label="Days set" value={`${metrics.set}`} sub={`of ${elapsed} so far`} />
           <Figure
             label="Speaking"
             value={`Stage ${speakingStage}`}
-            sub={`${speakingSuccessesAtStage} of 5 here · ${speakingTotalSuccessful} total`}
+            sub={`${speakingSuccessesAtStage} of 5 here · ${speakingTotalSuccessful} total${averageWpm ? ` · ${averageWpm} wpm` : ""}`}
           />
         </dl>
       </section>
@@ -169,7 +203,9 @@ function AnalysisBoardClient({
           <h2 id="each-heading" className="text-base font-semibold">
             Each commitment
           </h2>
-          <p className="text-sm text-muted-foreground">Select one to see only its days on the blade.</p>
+          <p className="text-sm text-muted-foreground">
+            Counted over the days it was scheduled. Select one to see only its days on the blade.
+          </p>
         </div>
         <ul className="border-t border-border sm:grid sm:grid-cols-2 sm:gap-x-10">
           {habitBreakdown.map(({ habit, done, base, pct }) => {
@@ -192,9 +228,9 @@ function AnalysisBoardClient({
                       {done}/{base} · {pct}%
                     </span>
                   </span>
-                  <span className="relative mx-1 h-[3px] overflow-hidden bg-border">
+                  <span className="relative mx-1 h-[3px] overflow-hidden bg-border transition-[height] duration-300 group-hover:h-[6px] group-focus-visible:h-[6px]">
                     <span
-                      className="absolute inset-y-0 left-0 origin-left transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:h-full"
+                      className="absolute inset-y-0 left-0 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
                       style={{ width: `${pct}%`, backgroundColor: temperColor(Math.max(1, temperIndex(pct / 100))) }}
                     />
                   </span>
@@ -204,6 +240,19 @@ function AnalysisBoardClient({
           })}
         </ul>
       </section>
+
+      {editing !== null && (
+        <DaySheet
+          key={editing}
+          day={editing}
+          dateISO={dateForDay(startDate, editing)}
+          scheduled={scheduledFor(habits, startDate, editing)}
+          entry={days[editing]}
+          v3={v3}
+          onClose={() => setEditing(null)}
+          onSaved={onSaved}
+        />
+      )}
     </div>
   );
 }
