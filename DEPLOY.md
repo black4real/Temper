@@ -71,3 +71,29 @@ Then create a GitHub repo and push. `.env.local` and secrets are gitignored.
 The beta is set to **noindex**. To open it up: in `src/app/layout.tsx` set
 `robots: { index: true, follow: true }`, and in `src/app/robots.ts` allow `/` (disallow
 `/auth` and `/import`). Keep email confirmation **on** once others can sign up.
+
+## Keepalive (stop the free Supabase project from pausing)
+
+Supabase's free tier pauses a project after 7 days without API traffic. Two independent
+schedulers ping it, each making several separate requests with retries, so one failing
+never matters:
+
+| Pinger | When | Needs |
+|---|---|---|
+| Vercel cron → `/api/keepalive` | daily, 03:17 UTC | `vercel.json` (already set) |
+| GitHub Actions (`.github/workflows/supabase-keepalive.yml`) | twice daily | repo secrets below |
+
+Setup:
+1. Supabase SQL Editor → run `supabase/migrations/0004_keepalive.sql` (a hidden `keepalive`
+   table, unreadable through the API, plus a self-limiting `keepalive_ping()` function).
+2. Optional but recommended: Vercel → Settings → Environment Variables → add `CRON_SECRET`
+   (any long random string). Vercel then sends it to the cron job and the route rejects
+   callers without it.
+3. GitHub → repo Settings → Secrets and variables → Actions → add `SUPABASE_URL` and
+   `SUPABASE_ANON_KEY` (same values as Vercel). Optionally `APP_URL`
+   (e.g. `https://tempper.vercel.app`) and the same `CRON_SECRET`.
+4. Check it: GitHub → Actions → "Supabase keepalive" → Run workflow. In Supabase, the
+   `keepalive` table (Table Editor) gains a row per ping, at most one per 10 minutes.
+
+Note: GitHub turns off scheduled workflows in a repo with no commits for 60 days; the
+Vercel cron keeps running regardless.

@@ -6,8 +6,12 @@ import { NextResponse, type NextRequest } from "next/server";
 // being bounced to the login page as a 200. Server components re-check auth regardless.
 const PROTECTED_PREFIXES = ["/speaking", "/analysis", "/settings", "/import", "/api"];
 
+// Called by schedulers with no session (Vercel cron, GitHub Actions); it guards itself.
+const OPEN_API = ["/api/keepalive"];
+
 function isProtected(pathname: string): boolean {
   if (pathname === "/") return true;
+  if (OPEN_API.includes(pathname)) return false;
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
