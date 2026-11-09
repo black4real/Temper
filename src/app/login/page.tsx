@@ -34,7 +34,7 @@ export default async function LoginPage() {
           <div aria-hidden className="size-10 rounded-[6px] bg-ember" />
           <h1 className="font-display text-3xl font-semibold tracking-tight">Ghost Mode</h1>
           <p className="max-w-xs text-sm text-muted-foreground">
-            A 120-day system. Execute nine daily commitments; keep the record in sync across your
+            A 120-day system. Execute eight daily commitments; keep the record in sync across your
             devices.
           </p>
         </div>

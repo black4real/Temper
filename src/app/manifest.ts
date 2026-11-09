@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Ghost Mode",
     short_name: "Ghost Mode",
-    description: "A 120-day discipline system. Execute nine daily commitments; reflect on the record.",
+    description: "A 120-day discipline system. Execute eight daily commitments; reflect on the record.",
     start_url: "/",
     scope: "/",
     display: "standalone",

@@ -94,7 +94,7 @@ function AnalysisBoardClient({
       <section aria-label="System overview" className="grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-4">
         <Metric label="Current day" value={`${currentDay}`} sub="of 120" />
         <Metric label="Adherence" value={`${metrics.adherence}%`} sub={`${metrics.totalCompleted} / ${metrics.possible}`} />
-        <Metric label="Completed days" value={`${metrics.completedDays} / ${elapsed}`} sub="all 9 done" />
+        <Metric label="Completed days" value={`${metrics.completedDays} / ${elapsed}`} sub="all 8 done" />
         <Metric
           label="Speaking"
           value={`Stage ${speakingStage}`}
@@ -163,7 +163,7 @@ function AnalysisBoardClient({
 
         {/* Legend */}
         <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-          <LegendSwatch className="bg-foreground" label="Completed (9/9)" />
+          <LegendSwatch className="bg-foreground" label="Completed (8/8)" />
           <LegendSwatch className="bg-foreground/25" label="Partial" />
           <LegendSwatch className="border-[1.5px] border-ember bg-ember/15" label="Today" />
           <LegendSwatch className="bg-foreground/[0.05]" label="Upcoming" />
@@ -175,9 +175,9 @@ function AnalysisBoardClient({
 
 function labelFor({ state, count }: { state: CellState; count: number }): string {
   switch (state) {
-    case "completed": return "Completed (9/9)";
-    case "current": return `Today (${count}/9)`;
-    case "partial": return count > 0 ? `Partial (${count}/9)` : "Missed";
+    case "completed": return "Completed (8/8)";
+    case "current": return `Today (${count}/${TOTAL_HABITS})`;
+    case "partial": return count > 0 ? `Partial (${count}/${TOTAL_HABITS})` : "Missed";
     case "future": return "Upcoming";
   }
 }

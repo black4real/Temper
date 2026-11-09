@@ -20,7 +20,7 @@ export default async function ImportPage() {
       </div>
       <p className="mb-6 text-sm text-muted-foreground">
         Import progress from the macOS Ghost Mode app. Your original app and its data are never
-        changed. LeetCode logs, recall rules and notification settings are not imported.
+        changed. LeetCode progress and logs, recall rules, and notification settings are not imported.
       </p>
       <ImportFlow userId={user.id} saveRecordings={profile.save_recordings} />
     </main>

@@ -33,7 +33,7 @@ export default function OgImage() {
           A 120-day discipline system.
         </div>
         <div style={{ fontSize: 28, color: "#6E6C66", marginTop: 48 }}>
-          Nine daily commitments. One record.
+          Eight daily commitments. One record.
         </div>
       </div>
     ),

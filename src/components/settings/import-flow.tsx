@@ -144,7 +144,7 @@ export function ImportFlow({
                 Not imported
               </p>
               <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <li>LeetCode problem log{parsed.summary.excluded.leetCodeEntries > 0 ? ` (${parsed.summary.excluded.leetCodeEntries} entries dropped)` : ""} — the LeetCode checkbox is still kept.</li>
+                <li>LeetCode progress and problem log{parsed.summary.excluded.leetCodeEntries > 0 ? ` (${parsed.summary.excluded.leetCodeEntries} entries)` : ""} — not imported.</li>
                 {parsed.summary.excluded.hadRecallRules && <li>Recall rules and schedule</li>}
                 {parsed.summary.excluded.hadNotifications && <li>Notification settings</li>}
               </ul>

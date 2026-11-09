@@ -1,7 +1,7 @@
 # Ghost Mode — Design System (awwwards process)
 
 > Design guidance only. Scope and features are governed by the project brief, not by this file.
-> The brief: preserve the 120-day system, 9 commitments, speaking (record + live transcript),
+> The brief: preserve the 120-day system, 8 commitments, speaking (record + live transcript),
 > analysis, settings. Exclude LeetCode, notifications, recall rules.
 
 ## Phase 0 — Brief
@@ -29,7 +29,7 @@ Idea:        Every day you execute, you strike a permanent mark into a 120-cell 
 Metaphor:    An ink ledger / contact sheet of a life. Marks are struck, never undone lightly.
 Signature:   The 120-cell grid is a single driver. One "clock" drives (a) today's fill as you
              check commitments and (b) a slow idle breath across the whole field at rest.
-             Checking the last of 9 commitments "seals" the day cell with an ink-settle motion.
+             Checking the last of 8 commitments "seals" the day cell with an ink-settle motion.
 Emotion:     Quiet focus. Ink on paper. Nothing shouts; the filled grid does the talking.
 Motion verb: "strike and settle" — marks appear with a quick strike, then settle like ink.
 Screenshot:  The Analysis grid: 120 cells, most filled solid, today outlined and half-filled,
@@ -75,13 +75,13 @@ nothing else. Completed = solid ink, not accent.
   120–160ms for controls, 280–360ms for day-seal, 600ms+ for page/idle.
 - **Idle:** the Analysis grid breathes — filled cells shift opacity ±4% on a slow sine, one
   shared clock, paused off-screen and under reduced-motion (written here as the decision).
-- **Signature:** sealing a day (9/9) runs an ink-settle on that day's cell + a one-line
+- **Signature:** sealing a day (8/8) runs an ink-settle on that day's cell + a one-line
   confirmation. Checking any commitment runs a quick "strike" on its mark.
 
 ### Composition plan (sections, each a different layout family)
 - **Auth:** single centered ink mark + form; the ledger faint in the background (ghosted).
-- **Main / Today:** left-aligned header (Day N/120, date), a list/grid of 9 commitments, a thin
-  completion bar, the "seal" state at 9/9. Speaking row links out to its screen.
+- **Main / Today:** left-aligned header (Day N/120, date), a list/grid of 8 commitments, a thin
+  completion bar, the "seal" state at 8/8. Speaking row links out to its screen.
 - **Speaking:** full-width stage/topic/curveball header; a large record control as the focal
   point; live transcript area; fallback banner when unsupported.
 - **Analysis:** metrics row, per-habit consistency bars, then the 120-cell ledger (the hero).

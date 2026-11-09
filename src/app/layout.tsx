@@ -18,7 +18,7 @@ const display = Space_Grotesk({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const description =
-  "A 120-day discipline system. Execute nine daily commitments; reflect on the record.";
+  "A 120-day discipline system. Execute eight daily commitments; reflect on the record.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

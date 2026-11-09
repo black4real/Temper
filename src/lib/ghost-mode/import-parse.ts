@@ -53,7 +53,7 @@ export function parseGhostModeExport(raw: unknown): ParseResult {
     return { ok: false, error: "No records or speaking sessions found in this file." };
   }
 
-  // --- Records (LeetCode habit checkbox is kept; only the LeetCode problem log is dropped) ---
+  // --- Records (LeetCode completion marks and problem logs are not imported) ---
   const rawRecords = (hasRecords ? (data.records as unknown[]) : []) as Record<string, unknown>[];
   const records: ImportPayload["records"] = [];
   for (const r of rawRecords) {
