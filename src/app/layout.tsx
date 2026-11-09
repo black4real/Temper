@@ -1,48 +1,52 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Archivo, Martian_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
-const sans = Inter({
+// One family does almost everything: Archivo's width axis gives an expanded display voice
+// (day numerals, headings) and a normal-width text voice from the same file.
+const sans = Archivo({
   variable: "--font-sans",
   subsets: ["latin"],
+  axes: ["wdth"],
   display: "swap",
 });
 
-const display = Space_Grotesk({
-  variable: "--font-display",
+// Figures and data only, like heat numbers stamped into steel.
+const mono = Martian_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const description =
-  "A 120-day discipline system. Execute eight daily commitments; reflect on the record.";
+  "A 120 day discipline system. Every day of work heats the bar, and the record keeps its color.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Ghost Mode",
-    template: "%s · Ghost Mode",
+    default: "Temper",
+    template: "%s · Temper",
   },
   description,
-  applicationName: "Ghost Mode",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Ghost Mode" },
+  applicationName: "Temper",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Temper" },
   icons: {
     icon: "/icons/icon-192.png",
     apple: "/icons/apple-icon-180.png",
   },
   openGraph: {
     type: "website",
-    siteName: "Ghost Mode",
-    title: "Ghost Mode",
+    siteName: "Temper",
+    title: "Temper",
     description,
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ghost Mode",
+    title: "Temper",
     description,
   },
   // Private personal beta: keep it out of search indexes. Flip to `{ index: true }`
@@ -52,8 +56,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F6F2" },
-    { media: "(prefers-color-scheme: dark)", color: "#0E0E10" },
+    { media: "(prefers-color-scheme: light)", color: "#EEF0F2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D0E10" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -68,7 +72,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${sans.variable} ${display.variable} h-full antialiased`}
+      className={`${sans.variable} ${mono.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
@@ -77,7 +81,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <nav aria-label="Skip links">
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-foreground focus:px-4 focus:py-2 focus:text-background"
+            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded-[2px] focus:bg-foreground focus:px-4 focus:py-2 focus:text-background"
           >
             Skip to content
           </a>

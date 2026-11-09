@@ -1,8 +1,9 @@
-// Ghost Mode service worker — minimal offline support for installability.
+// Temper service worker: minimal offline support for installability.
 // Strategy: network-first for navigations (so data stays fresh), cache-first for static assets,
 // with an offline fallback page. We never cache Supabase API/auth responses.
+// Bump CACHE when cached static URLs change content (icons): activate deletes old caches.
 
-const CACHE = "ghost-mode-v1";
+const CACHE = "temper-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE = ["/offline", "/icons/icon-192.png", "/icons/icon-512.png"];
 

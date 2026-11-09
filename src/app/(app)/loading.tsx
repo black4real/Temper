@@ -1,36 +1,28 @@
-import { Skeleton } from "@/components/ui/skeleton";
-
 /**
- * Shown immediately on every navigation within the app shell. Without this, a page turn
- * blocks on the server (auth check + queries) while the old page stays on screen, which
- * reads as a long, unresponsive delay. With it, the new page appears instantly.
+ * Shown immediately on every page turn inside the app, so navigation never hangs on the
+ * old page while the server works. Shaped like the Temper layout (numeral, bar, rows) so
+ * the real page settles into place instead of jumping.
  */
 export default function Loading() {
   return (
     <main
-      className="mx-auto w-full max-w-[720px] flex-1 px-5 py-8 sm:py-10"
+      className="mx-auto w-full max-w-[1040px] flex-1 px-5 pt-8 pb-10 sm:px-8 sm:pt-12"
       aria-busy
       aria-label="Loading"
     >
-      <div className="flex flex-col gap-7">
-        <header className="flex flex-col gap-2">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-9 w-40" />
-          <Skeleton className="h-4 w-56" />
-        </header>
-
-        <div className="flex flex-col gap-2">
-          <Skeleton className="mb-1 h-3 w-32" />
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-[62px] w-full" />
-            ))}
-          </div>
+      <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-5">
+          <div className="h-3 w-40 rounded-[2px] bg-muted" />
+          <div className="h-[clamp(64px,12vw,150px)] w-[min(60%,420px)] rounded-[2px] bg-muted/80" />
+          <div className="relative h-14 w-full overflow-hidden rounded-[2px] steel opacity-70" />
         </div>
-
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-[3px] w-full" />
+        <div className="flex flex-col border-t border-border">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 border-b border-border py-5">
+              <div className="size-6 rounded-[2px] bg-muted" />
+              <div className="h-4 rounded-[2px] bg-muted" style={{ width: `${30 + ((i * 17) % 35)}%` }} />
+            </div>
+          ))}
         </div>
       </div>
     </main>

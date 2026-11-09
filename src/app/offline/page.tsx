@@ -1,3 +1,5 @@
+import { Wordmark } from "@/components/app/wordmark";
+
 export const metadata = { title: "Offline" };
 
 export default function OfflinePage() {
@@ -5,19 +7,18 @@ export default function OfflinePage() {
     <main
       id="main"
       tabIndex={-1}
-      className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center outline-none"
+      className="mx-auto flex min-h-dvh w-full max-w-[1040px] flex-col justify-between px-5 py-8 outline-none sm:px-8"
     >
-      <div
-        aria-hidden
-        className="size-12 rounded-sm border-2 border-dashed border-border"
-      />
-      <h1 className="font-display text-2xl font-semibold tracking-tight">
-        You&apos;re offline
-      </h1>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        Ghost Mode needs a connection to sync your progress. Reconnect and this page
-        will pick back up.
-      </p>
+      <Wordmark />
+      <div className="flex flex-col gap-6 py-16">
+        <h1 className="numeral max-w-[12ch] text-[clamp(48px,9vw,112px)]">Off the anvil.</h1>
+        <div aria-hidden className="h-10 w-full max-w-[520px] rounded-[2px] steel opacity-60" />
+        <p className="max-w-[46ch] text-muted-foreground">
+          You&apos;re offline. Temper needs a connection to save today&apos;s record. Reconnect and
+          this page picks back up.
+        </p>
+      </div>
+      <span />
     </main>
   );
 }

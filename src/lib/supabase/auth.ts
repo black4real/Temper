@@ -15,10 +15,14 @@ export type Profile = {
  */
 export async function requireUser() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  // Verified JWT claims (see the note in lib/supabase/middleware.ts on why getClaims).
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) redirect("/login");
+  const user = {
+    id: claims.sub as string,
+    email: (typeof claims.email === "string" ? claims.email : null) as string | null,
+  };
   return { supabase, user };
 }
 

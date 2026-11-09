@@ -32,14 +32,16 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the session JWT. With asymmetric signing keys it does so locally
+  // (cached JWKS), avoiding a round trip to the Auth server on every page turn; with a
+  // symmetric secret it falls back to asking the server, exactly like getUser().
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = !!data?.claims?.sub;
 
   const pathname = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!user && !isPublic) {
+  if (!signedIn && !isPublic) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     return NextResponse.redirect(redirectUrl);

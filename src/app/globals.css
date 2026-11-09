@@ -8,12 +8,27 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-display);
-  --font-display: var(--font-display);
-  --font-heading: var(--font-display);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-sans);
+  --font-heading: var(--font-sans);
+
+  /* Temper ramp: the oxide colors polished steel takes as it heats. The accent of the
+     whole system. t0 is bare steel (nothing done), t6 is fully tempered blue (all done). */
+  --color-t0: var(--t0);
+  --color-t1: var(--t1);
+  --color-t2: var(--t2);
+  --color-t3: var(--t3);
+  --color-t4: var(--t4);
+  --color-t5: var(--t5);
+  --color-t6: var(--t6);
+  --color-steel: var(--steel);
+  --color-heat: var(--heat);
+
+  /* Kept for components written against the previous system ("now" marker). */
   --color-ember: var(--ember);
   --color-ember-foreground: var(--ember-foreground);
   --color-line: var(--line-color);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -43,129 +58,282 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* One shape rule: machined 2px edges everywhere. */
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+  --radius-4xl: 2px;
+
+  --ease-set: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Ghost Mode ink-on-paper system. Monochrome ink + one ember accent reserved for "now". */
+/* ---------------------------------------------------------------------------
+   Light: brushed steel in daylight.
+   --------------------------------------------------------------------------- */
 :root {
-  --background: #f7f6f2; /* ground: warm paper */
-  --foreground: #141414; /* ink */
-  --card: #fdfcf9;
-  --card-foreground: #141414;
-  --popover: #fdfcf9;
-  --popover-foreground: #141414;
-  --primary: #141414; /* ink-filled primary actions */
-  --primary-foreground: #f7f6f2;
-  --secondary: #efede7;
-  --secondary-foreground: #141414;
-  --muted: #efede7;
-  --muted-foreground: #6e6c66;
-  --accent: #eceae3; /* subtle neutral hover, NOT ember */
-  --accent-foreground: #141414;
-  --destructive: #b42318;
-  --border: #e2e0d9; /* line */
-  --input: #e2e0d9;
-  --ring: #c2410c; /* ember focus ring */
-  --ember: #c2410c;
+  --background: #eef0f2;
+  --foreground: #121417;
+  --card: #f6f7f8;
+  --card-foreground: #121417;
+  --popover: #f8f9fa;
+  --popover-foreground: #121417;
+  --primary: #121417;
+  --primary-foreground: #f6f7f8;
+  --secondary: #e3e6e9;
+  --secondary-foreground: #121417;
+  --muted: #e3e6e9;
+  --muted-foreground: #565c64;
+  --accent: #e1e4e8;
+  --accent-foreground: #121417;
+  --destructive: #a61b1b;
+  --border: #d3d7dc;
+  --input: #c9ced4;
+  --ring: #2f5fb8;
+
+  --steel: #c7ccd2; /* bare steel band */
+  --t0: #cfd3d8;
+  --t1: #e6d39b;
+  --t2: #d2a955;
+  --t3: #ab7136;
+  --t4: #8a4d6b;
+  --t5: #64489a;
+  --t6: #2f5fb8;
+  --heat: var(--t0); /* overwritten live by the heat driver */
+
+  --ember: #9a6326; /* "now" marker; bronze reads on light steel */
   --ember-foreground: #ffffff;
-  --line-color: #e2e0d9;
-  --chart-1: #141414;
-  --chart-2: #6e6c66;
-  --chart-3: #9a988f;
-  --chart-4: #c2410c;
-  --chart-5: #e2e0d9;
-  --radius: 0.625rem;
-  --sidebar: #f7f6f2;
-  --sidebar-foreground: #141414;
-  --sidebar-primary: #141414;
-  --sidebar-primary-foreground: #f7f6f2;
-  --sidebar-accent: #eceae3;
-  --sidebar-accent-foreground: #141414;
-  --sidebar-border: #e2e0d9;
-  --sidebar-ring: #c2410c;
+  --line-color: #d3d7dc;
+
+  --chart-1: #121417;
+  --chart-2: #565c64;
+  --chart-3: #8b9097;
+  --chart-4: #2f5fb8;
+  --chart-5: #d3d7dc;
+  --radius: 2px;
+  --sidebar: #eef0f2;
+  --sidebar-foreground: #121417;
+  --sidebar-primary: #121417;
+  --sidebar-primary-foreground: #f6f7f8;
+  --sidebar-accent: #e1e4e8;
+  --sidebar-accent-foreground: #121417;
+  --sidebar-border: #d3d7dc;
+  --sidebar-ring: #2f5fb8;
+
+  --brush: rgba(255, 255, 255, 0.5);
+  --brush-dark: rgba(0, 0, 0, 0.04);
+  --sheen: rgba(255, 255, 255, 0.55);
 }
 
+/* ---------------------------------------------------------------------------
+   Dark (the hero theme): blued steel at night.
+   --------------------------------------------------------------------------- */
 .dark {
-  --background: #0e0e10; /* ground: near-black */
-  --foreground: #f2f1ec; /* ink */
-  --card: #161618;
-  --card-foreground: #f2f1ec;
-  --popover: #161618;
-  --popover-foreground: #f2f1ec;
-  --primary: #f2f1ec;
-  --primary-foreground: #0e0e10;
-  --secondary: #1d1d20;
-  --secondary-foreground: #f2f1ec;
-  --muted: #1d1d20;
-  --muted-foreground: #9a988f;
-  --accent: #232326;
-  --accent-foreground: #f2f1ec;
-  --destructive: #f87171;
-  --border: #262628; /* line */
-  --input: #2b2b2e;
-  --ring: #f97316; /* ember focus ring */
-  --ember: #f97316;
-  --ember-foreground: #0e0e10;
-  --line-color: #262628;
-  --chart-1: #f2f1ec;
-  --chart-2: #9a988f;
-  --chart-3: #6e6c66;
-  --chart-4: #f97316;
-  --chart-5: #262628;
-  --sidebar: #0e0e10;
-  --sidebar-foreground: #f2f1ec;
-  --sidebar-primary: #f2f1ec;
-  --sidebar-primary-foreground: #0e0e10;
-  --sidebar-accent: #232326;
-  --sidebar-accent-foreground: #f2f1ec;
-  --sidebar-border: #262628;
-  --sidebar-ring: #f97316;
+  --background: #0d0e10;
+  --foreground: #ecedef;
+  --card: #14161a;
+  --card-foreground: #ecedef;
+  --popover: #16181c;
+  --popover-foreground: #ecedef;
+  --primary: #ecedef;
+  --primary-foreground: #0d0e10;
+  --secondary: #1a1d21;
+  --secondary-foreground: #ecedef;
+  --muted: #1a1d21;
+  --muted-foreground: #8b9097;
+  --accent: #1d2025;
+  --accent-foreground: #ecedef;
+  --destructive: #f07171;
+  --border: #23262b;
+  --input: #2c3036;
+  --ring: #7aa3ee;
+
+  --steel: #2a2e34;
+  --t0: #25292f;
+  --t1: #e9d9a6;
+  --t2: #d6b062;
+  --t3: #b0773a;
+  --t4: #94557a;
+  --t5: #7457ad;
+  --t6: #3f73d1;
+  --heat: var(--t0);
+
+  --ember: #d6b062; /* "now" marker; straw reads on blued steel */
+  --ember-foreground: #0d0e10;
+  --line-color: #23262b;
+
+  --chart-1: #ecedef;
+  --chart-2: #8b9097;
+  --chart-3: #565c64;
+  --chart-4: #7aa3ee;
+  --chart-5: #23262b;
+  --sidebar: #0d0e10;
+  --sidebar-foreground: #ecedef;
+  --sidebar-primary: #ecedef;
+  --sidebar-primary-foreground: #0d0e10;
+  --sidebar-accent: #1d2025;
+  --sidebar-accent-foreground: #ecedef;
+  --sidebar-border: #23262b;
+  --sidebar-ring: #7aa3ee;
+
+  --brush: rgba(255, 255, 255, 0.035);
+  --brush-dark: rgba(0, 0, 0, 0.25);
+  --sheen: rgba(255, 255, 255, 0.22);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
     -webkit-tap-highlight-color: transparent;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    line-height: 1.5;
   }
   ::selection {
-    background: var(--ember);
-    color: var(--ember-foreground);
+    background: var(--t6);
+    color: #ffffff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* Thin steel scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--input) transparent;
   }
 }
 
 @layer utilities {
+  /* Archivo stretched to its expanded width: the display voice. */
   .font-display {
-    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-stretch: 125%;
+  }
+  /* Martian Mono for figures and data, like stamped heat numbers. */
+  .font-data {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
   .tnum {
     font-variant-numeric: tabular-nums;
   }
+  /* The big stamped day numeral. */
+  .numeral {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.045em;
+    line-height: 0.82;
+  }
+  /* Brushed steel surface: fine horizontal grain plus a soft top light. */
+  .steel {
+    background-color: var(--steel);
+    background-image:
+      repeating-linear-gradient(0deg, var(--brush) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), var(--brush-dark));
+  }
+  /* A tempered band: the oxide color with the same grain on top. */
+  .band {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.18));
+  }
 }
 
-/* Ledger "breath": filled cells drift opacity slightly, offset per cell for a slow wave.
-   Disabled under reduced-motion by the block below. */
-@keyframes gm-breath {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+/* ---------------------------------------------------------------------------
+   Sheen: a narrow diagonal light that drifts across polished steel. Its position is
+   driven by the heat driver on GSAP's ticker; off under reduced motion.
+   --------------------------------------------------------------------------- */
+.sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
-.gm-breath {
-  animation: gm-breath 6s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * 45ms);
+.sheen::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: 0;
+  width: 18%;
+  background: linear-gradient(100deg, transparent 0%, var(--sheen) 50%, transparent 100%);
+  transform: translateX(calc(var(--sheen-x, -30) * 1%)) skewX(-18deg);
+  opacity: 0.9;
 }
 
-/* Honor reduced-motion globally: no transitions/animations, no smooth scroll. */
+/* "Set": the sweep that runs once when a day reaches N/N. */
+@keyframes temper-set {
+  0% { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateX(620%) skewX(-18deg); opacity: 0; }
+}
+.set-sweep::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: 0;
+  width: 18%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  animation: temper-set 900ms var(--ease-set) both;
+  pointer-events: none;
+}
+
+/* Heat-in: how new marks arrive. Color warms in with a short rise, then sets. */
+@keyframes heat-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------------------------------------------------------------------
+   Page transitions (React <ViewTransition>). The header is the fixed reference;
+   content leaves fast and arrives with the heat-in rise.
+   --------------------------------------------------------------------------- */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(site-header),
+::view-transition-group(site-tabbar) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header),
+::view-transition-old(site-tabbar) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(site-tabbar) {
+  animation: none;
+}
+::view-transition-old(.page) {
+  animation: 120ms ease-out both page-out;
+}
+::view-transition-new(.page) {
+  animation: 300ms var(--ease-set) 60ms both page-in;
+}
+@keyframes page-out {
+  to { opacity: 0; }
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion: no movement anywhere, content always fully visible. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -174,5 +342,15 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+  .sheen::after,
+  .set-sweep::before {
+    display: none;
   }
 }
