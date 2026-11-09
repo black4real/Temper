@@ -1,6 +1,6 @@
 // Daily commitments. Each user owns their own set (stored in the `habits` table);
-// the list below is the default seeded for every new account. LeetCode, notifications,
-// and recall rules are excluded. Speaking is a protected "system" habit — it drives the
+// the list below is the default seeded for every new account. LeetCode and
+// notifications are excluded; recall rules live in recall.ts as a rotating line on Today. Speaking is a protected "system" habit — it drives the
 // /speaking practice screen and its completion is managed by sessions, so it can be
 // renamed but not removed, and its kind/href stay fixed.
 

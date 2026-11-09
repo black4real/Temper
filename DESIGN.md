@@ -3,7 +3,8 @@
 > Design guidance only. Scope comes from the project brief and the approved plan.
 > Product: a personal 120 day discipline system. Daily commitments (user defined), speaking
 > practice with recording and live transcript, a record of every day, settings, import.
-> Excluded by brief: LeetCode, notifications, recall rules.
+> Excluded by brief: LeetCode, notifications. Recall rules (added on request) show as one
+> rotating rule at the top left of Today, a new one every 3 days, no reminders.
 
 ## Phase 0: Brief
 

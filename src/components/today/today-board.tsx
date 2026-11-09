@@ -11,6 +11,7 @@ import { saveDayRecord } from "@/lib/ghost-mode/actions";
 import { TEMPER_NAMES, temperIndex } from "@/lib/ghost-mode/temper";
 import { EMPTY_DAY, type DayEntry, type DayMap } from "@/lib/ghost-mode/records";
 import { streaks, weekdayFor } from "@/lib/ghost-mode/stats";
+import { recallForDay } from "@/lib/ghost-mode/recall";
 import { useIsClient } from "@/lib/use-is-client";
 import { useHeat } from "@/motion/heat";
 import { TemperBar } from "@/components/temper/temper-bar";
@@ -155,7 +156,10 @@ function TodayBoardClient({ startDate, initialDays, habits, layout = "blocks", v
     <div ref={hostRef} className="flex flex-col gap-12">
       {/* Hero: the stamped day numeral, the streak, and today's bar */}
       <section aria-labelledby="today-heading" className="flex flex-col gap-6">
-        <p className="text-sm text-muted-foreground">{formatLongDate(dateISO)}</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
+          <RecallLine dayNumber={dayNumber} />
+          <p className="shrink-0 text-sm text-muted-foreground sm:pt-0.5 sm:text-right">{formatLongDate(dateISO)}</p>
+        </div>
         <div className="flex items-end justify-between gap-6">
           <h1 id="today-heading" className="flex items-end gap-3">
             <span
@@ -370,6 +374,23 @@ function CommitmentRow({
       <Check done={done} />
       {label}
     </button>
+  );
+}
+
+/** The recall rule for this stretch of days: title in body type, the practice beneath it. */
+function RecallLine({ dayNumber }: { dayNumber: number }) {
+  const { rule, firstDay, lastDay } = recallForDay(dayNumber);
+  return (
+    <aside
+      aria-label={`Recall rule for days ${firstDay} to ${lastDay}`}
+      className="flex max-w-[48ch] flex-col gap-1 border-l-2 border-ember pl-3"
+    >
+      <p className="font-data text-[11px] text-muted-foreground">
+        Recall · days {firstDay} to {lastDay}
+      </p>
+      <p className="text-[15px] leading-snug font-medium">{rule.title}</p>
+      <p className="text-[13px] leading-snug text-muted-foreground">{rule.practice}</p>
+    </aside>
   );
 }
 
