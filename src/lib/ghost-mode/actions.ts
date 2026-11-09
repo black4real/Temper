@@ -48,7 +48,10 @@ export async function saveDayRecord(input: {
 
   if (error) return { ok: false, error: error.message };
 
-  revalidatePath("/");
+  // Note: we deliberately do NOT revalidate "/" here. The Today board holds the
+  // completion set in optimistic client state, so re-rendering the current page on
+  // every tap only adds latency and jank. Analysis is a different route, so busting
+  // its cache keeps it fresh on next visit without affecting the tap you just made.
   revalidatePath("/analysis");
   return { ok: true, completedHabitIds };
 }

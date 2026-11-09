@@ -153,7 +153,7 @@ function CommitmentRow({
   );
 
   const base =
-    "flex w-full items-center gap-3.5 rounded-[10px] border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0";
+    "flex w-full cursor-pointer touch-manipulation select-none items-center gap-3.5 rounded-[10px] border px-4 py-3.5 text-left transition-[background-color,transform] duration-100 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0";
   const state = done
     ? "border-border bg-accent/40"
     : "border-border bg-card hover:bg-accent/40";

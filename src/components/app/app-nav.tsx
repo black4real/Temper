@@ -8,6 +8,7 @@ const ITEMS = [
   { href: "/", label: "Today" },
   { href: "/speaking", label: "Speaking" },
   { href: "/analysis", label: "Analysis" },
+  { href: "/settings", label: "Settings" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
