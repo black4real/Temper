@@ -9,9 +9,9 @@ export const metadata = { title: "Analysis" };
 export default async function AnalysisPage() {
   const { user, profile } = await getProfile();
   const supabase = await createClient();
-  const { habits } = await getHabits(user.id);
 
-  const [recordsRes, sessionsRes] = await Promise.all([
+  const [{ habits }, recordsRes, sessionsRes] = await Promise.all([
+    getHabits(user.id),
     supabase.from("day_records").select("day_number, completed_habit_ids").eq("user_id", user.id),
     supabase.from("speaking_sessions").select("day_number, stage, completed_target").eq("user_id", user.id),
   ]);

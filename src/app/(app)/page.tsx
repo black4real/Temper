@@ -6,13 +6,14 @@ import { TodayBoard } from "@/components/today/today-board";
 export default async function TodayPage() {
   const { user, profile } = await getProfile();
   const supabase = await createClient();
-  const { habits } = await getHabits(user.id);
 
-  // Load all of this user's day records (<= 120 rows). The board picks today's locally.
-  const { data } = await supabase
-    .from("day_records")
-    .select("day_number, completed_habit_ids")
-    .eq("user_id", user.id);
+  // Both queries only need user.id, so run them together rather than back to back —
+  // one round-trip of latency instead of two on every page turn.
+  const [{ habits }, { data }] = await Promise.all([
+    getHabits(user.id),
+    // Load all of this user's day records (<= 120 rows). The board picks today's locally.
+    supabase.from("day_records").select("day_number, completed_habit_ids").eq("user_id", user.id),
+  ]);
 
   const records: Record<number, string[]> = {};
   for (const row of data ?? []) {

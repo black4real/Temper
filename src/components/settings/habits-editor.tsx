@@ -34,7 +34,10 @@ export function HabitsEditor({ habits, editable }: { habits: Habit[]; editable: 
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-[10px] border border-border bg-card p-5">
+    <section
+      id="commitments"
+      className="flex scroll-mt-20 flex-col gap-4 rounded-[10px] border border-border bg-card p-5"
+    >
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-semibold">Commitments</h2>

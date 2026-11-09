@@ -91,9 +91,17 @@ function TodayBoardClient({ startDate, initialRecords, habits, layout = "blocks"
       </header>
 
       <section aria-label="Today's commitments" className="flex flex-col gap-2">
-        <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Today&apos;s commitments
-        </h2>
+        <div className="mb-1 flex items-baseline justify-between gap-3">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Today&apos;s commitments
+          </h2>
+          <Link
+            href="/settings#commitments"
+            className="rounded-sm text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Edit
+          </Link>
+        </div>
         <ul className={cn(layout === "blocks" ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "flex flex-col gap-2")}>
           {habits.map((habit) => (
             <li key={habit.slug}>
