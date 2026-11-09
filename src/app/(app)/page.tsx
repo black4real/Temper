@@ -1,10 +1,12 @@
 import { getProfile } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
+import { getHabits } from "@/lib/ghost-mode/habits-data";
 import { TodayBoard } from "@/components/today/today-board";
 
 export default async function TodayPage() {
   const { user, profile } = await getProfile();
   const supabase = await createClient();
+  const { habits } = await getHabits(user.id);
 
   // Load all of this user's day records (<= 120 rows). The board picks today's locally.
   const { data } = await supabase
@@ -22,6 +24,7 @@ export default async function TodayPage() {
       <TodayBoard
         startDate={profile.start_date}
         initialRecords={records}
+        habits={habits}
         layout={profile.habit_layout}
       />
     </main>

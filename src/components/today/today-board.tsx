@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { HABITS, TOTAL_HABITS, type Habit } from "@/lib/ghost-mode/habits";
+import { type Habit } from "@/lib/ghost-mode/habits";
 import { computeDayNumber, dateForDay, formatLongDate } from "@/lib/ghost-mode/day";
 import { saveDayRecord } from "@/lib/ghost-mode/actions";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +13,7 @@ import { useIsClient } from "@/lib/use-is-client";
 type TodayBoardProps = {
   startDate: string;
   initialRecords: Record<number, string[]>;
+  habits: Habit[];
   layout?: "blocks" | "minimal";
 };
 
@@ -24,7 +25,7 @@ export function TodayBoard(props: TodayBoardProps) {
       <div className="flex flex-col gap-6" aria-busy>
         <Skeleton className="h-9 w-40" />
         <div className="flex flex-col gap-2">
-          {Array.from({ length: TOTAL_HABITS }).map((_, i) => (
+          {Array.from({ length: Math.max(1, props.habits.length) }).map((_, i) => (
             <Skeleton key={i} className="h-[60px] w-full" />
           ))}
         </div>
@@ -36,7 +37,7 @@ export function TodayBoard(props: TodayBoardProps) {
   return <TodayBoardClient {...props} />;
 }
 
-function TodayBoardClient({ startDate, initialRecords, layout = "blocks" }: TodayBoardProps) {
+function TodayBoardClient({ startDate, initialRecords, habits, layout = "blocks" }: TodayBoardProps) {
   const [dayNumber] = useState(() => computeDayNumber(startDate));
   const [completed, setCompleted] = useState<Set<string>>(
     () => new Set(initialRecords[computeDayNumber(startDate)] ?? []),
@@ -44,8 +45,13 @@ function TodayBoardClient({ startDate, initialRecords, layout = "blocks" }: Toda
   const [, startSaving] = useTransition();
 
   const dateISO = useMemo(() => dateForDay(startDate, dayNumber), [startDate, dayNumber]);
-  const count = completed.size;
-  const allDone = count >= TOTAL_HABITS;
+  const total = habits.length;
+  // Count only completions that belong to a current commitment (ignore stale/removed ones).
+  const count = useMemo(
+    () => habits.reduce((n, h) => (completed.has(h.slug) ? n + 1 : n), 0),
+    [habits, completed],
+  );
+  const allDone = total > 0 && count >= total;
 
   function persist(next: Set<string>, previous: Set<string>) {
     startSaving(async () => {
@@ -65,8 +71,8 @@ function TodayBoardClient({ startDate, initialRecords, layout = "blocks" }: Toda
     if (habit.kind !== "checkbox") return;
     const previous = new Set(completed);
     const next = new Set(completed);
-    if (next.has(habit.id)) next.delete(habit.id);
-    else next.add(habit.id);
+    if (next.has(habit.slug)) next.delete(habit.slug);
+    else next.add(habit.slug);
     setCompleted(next); // optimistic
     persist(next, previous);
   }
@@ -89,11 +95,11 @@ function TodayBoardClient({ startDate, initialRecords, layout = "blocks" }: Toda
           Today&apos;s commitments
         </h2>
         <ul className={cn(layout === "blocks" ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "flex flex-col gap-2")}>
-          {HABITS.map((habit) => (
-            <li key={habit.id}>
+          {habits.map((habit) => (
+            <li key={habit.slug}>
               <CommitmentRow
                 habit={habit}
-                done={completed.has(habit.id)}
+                done={completed.has(habit.slug)}
                 onToggle={() => toggle(habit)}
               />
             </li>
@@ -104,7 +110,7 @@ function TodayBoardClient({ startDate, initialRecords, layout = "blocks" }: Toda
       <section aria-label="Completion" className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
           <p className={cn("tnum text-sm font-medium", allDone ? "text-foreground" : "text-muted-foreground")}>
-            {count} / {TOTAL_HABITS} completed
+            {count} / {total} completed
           </p>
           {allDone && (
             <p className="text-sm font-medium text-foreground">Day {dayNumber} sealed</p>
@@ -113,11 +119,11 @@ function TodayBoardClient({ startDate, initialRecords, layout = "blocks" }: Toda
         <div className="h-[3px] w-full overflow-hidden rounded-full bg-border">
           <div
             className="h-full rounded-full bg-foreground transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            style={{ width: `${(count / TOTAL_HABITS) * 100}%` }}
+            style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }}
             role="progressbar"
             aria-valuenow={count}
             aria-valuemin={0}
-            aria-valuemax={TOTAL_HABITS}
+            aria-valuemax={total}
             aria-label="Commitments completed"
           />
         </div>

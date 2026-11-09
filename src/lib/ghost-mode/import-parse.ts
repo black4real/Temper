@@ -3,7 +3,23 @@
 // Pure + client-safe. The server action re-validates everything before writing.
 
 import type { ImportPayload } from "@/lib/ghost-mode/import-actions";
-import { sanitizeHabitIds } from "@/lib/ghost-mode/habits";
+
+// Ids explicitly dropped on import (the LeetCode feature is not migrated). Any other id
+// is kept here and later filtered server-side against the user's actual commitments.
+const EXCLUDED_IDS = new Set(["leetcode", "leet_code", "leetCode"]);
+
+/** Client-side cleanup of a record's completed ids: strings, trimmed, de-duped, LeetCode dropped. */
+function cleanCompletedIds(value: unknown[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const v of value) {
+    const id = String(v).trim();
+    if (!id || EXCLUDED_IDS.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
 
 export type ParseSummary = {
   startDate: string | null;
@@ -61,7 +77,7 @@ export function parseGhostModeExport(raw: unknown): ParseResult {
     const date = toISODate(r.date);
     if (!Number.isFinite(dayNumber) || dayNumber < 1 || dayNumber > 120 || !date) continue;
     const ids = Array.isArray(r.completedHabitIds)
-      ? sanitizeHabitIds((r.completedHabitIds as unknown[]).map(String))
+      ? cleanCompletedIds(r.completedHabitIds as unknown[])
       : [];
     records.push({ dayNumber: Math.trunc(dayNumber), date, completedHabitIds: ids });
   }

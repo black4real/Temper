@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeHabitIds } from "@/lib/ghost-mode/habits";
+import { getHabitSlugs } from "@/lib/ghost-mode/habits-data";
 import { TOTAL_DAYS } from "@/lib/ghost-mode/day";
 
 export type SaveDayRecordResult =
@@ -33,7 +34,7 @@ export async function saveDayRecord(input: {
     return { ok: false, error: "Invalid date." };
   }
 
-  const completedHabitIds = sanitizeHabitIds(input.completedHabitIds);
+  const completedHabitIds = sanitizeHabitIds(input.completedHabitIds, await getHabitSlugs(user.id));
 
   const { error } = await supabase.from("day_records").upsert(
     {

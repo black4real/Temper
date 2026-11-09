@@ -1,6 +1,7 @@
 import { getProfile } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { currentStage, successesAtCurrentStage, type StageInput } from "@/lib/ghost-mode/speaking";
+import { getHabits } from "@/lib/ghost-mode/habits-data";
 import { AnalysisBoard } from "@/components/analysis/analysis-board";
 
 export const metadata = { title: "Analysis" };
@@ -8,6 +9,7 @@ export const metadata = { title: "Analysis" };
 export default async function AnalysisPage() {
   const { user, profile } = await getProfile();
   const supabase = await createClient();
+  const { habits } = await getHabits(user.id);
 
   const [recordsRes, sessionsRes] = await Promise.all([
     supabase.from("day_records").select("day_number, completed_habit_ids").eq("user_id", user.id),
@@ -30,6 +32,7 @@ export default async function AnalysisPage() {
       <AnalysisBoard
         startDate={profile.start_date}
         records={records}
+        habits={habits}
         speakingStage={currentStage(sessions)}
         speakingSuccessesAtStage={successesAtCurrentStage(sessions)}
         speakingTotalSuccessful={sessions.filter((s) => s.completedTarget).length}

@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useIsClient } from "@/lib/use-is-client";
-import { HABITS, TOTAL_HABITS, sanitizeHabitIds } from "@/lib/ghost-mode/habits";
+import { sanitizeHabitIds, type Habit } from "@/lib/ghost-mode/habits";
 import { computeDayNumber, dateForDay, formatLongDate, TOTAL_DAYS } from "@/lib/ghost-mode/day";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   startDate: string;
   records: Record<number, string[]>;
+  habits: Habit[];
   speakingStage: number;
   speakingSuccessesAtStage: number;
   speakingTotalSuccessful: number;
@@ -32,55 +33,58 @@ export function AnalysisBoard(props: Props) {
   return <AnalysisBoardClient {...props} />;
 }
 
-function countFor(records: Record<number, string[]>, day: number): number {
-  return sanitizeHabitIds(records[day] ?? []).length;
+function countFor(records: Record<number, string[]>, day: number, allowed: Set<string>): number {
+  return sanitizeHabitIds(records[day] ?? [], allowed).length;
 }
 
 function AnalysisBoardClient({
   startDate,
   records,
+  habits,
   speakingStage,
   speakingSuccessesAtStage,
   speakingTotalSuccessful,
 }: Props) {
   const currentDay = useMemo(() => computeDayNumber(startDate), [startDate]);
   const elapsed = Math.min(currentDay, TOTAL_DAYS);
+  const total = habits.length;
+  const slugSet = useMemo(() => new Set(habits.map((h) => h.slug)), [habits]);
   const [hovered, setHovered] = useState<number | null>(null);
 
   const metrics = useMemo(() => {
     let completedDays = 0;
     let totalCompleted = 0;
     for (let d = 1; d <= elapsed; d++) {
-      const c = countFor(records, d);
+      const c = countFor(records, d, slugSet);
       totalCompleted += c;
-      if (c >= TOTAL_HABITS) completedDays += 1;
+      if (total > 0 && c >= total) completedDays += 1;
     }
-    const possible = Math.max(1, elapsed) * TOTAL_HABITS;
+    const possible = Math.max(1, elapsed) * Math.max(1, total);
     const adherence = Math.round((totalCompleted / possible) * 100);
     return { completedDays, totalCompleted, possible, adherence };
-  }, [records, elapsed]);
+  }, [records, elapsed, slugSet, total]);
 
   const habitBreakdown = useMemo(() => {
     const base = Math.max(1, elapsed);
-    return HABITS.map((habit) => {
+    return habits.map((habit) => {
       let done = 0;
       for (let d = 1; d <= elapsed; d++) {
-        if (sanitizeHabitIds(records[d] ?? []).includes(habit.id)) done += 1;
+        if (sanitizeHabitIds(records[d] ?? [], slugSet).includes(habit.slug)) done += 1;
       }
       return { habit, done, base, pct: Math.round((done / base) * 100) };
     });
-  }, [records, elapsed]);
+  }, [records, elapsed, habits, slugSet]);
 
   function stateFor(day: number): { state: CellState; count: number } {
     if (day > currentDay) return { state: "future", count: 0 };
-    const count = countFor(records, day);
-    if (count >= TOTAL_HABITS) return { state: "completed", count };
+    const count = countFor(records, day, slugSet);
+    if (total > 0 && count >= total) return { state: "completed", count };
     if (day === currentDay) return { state: "current", count };
     return { state: "partial", count };
   }
 
   const hoveredLabel = hovered
-    ? `Day ${hovered} · ${formatLongDate(dateForDay(startDate, hovered))} · ${labelFor(stateFor(hovered))}`
+    ? `Day ${hovered} · ${formatLongDate(dateForDay(startDate, hovered))} · ${labelFor(stateFor(hovered), total)}`
     : null;
 
   return (
@@ -94,7 +98,7 @@ function AnalysisBoardClient({
       <section aria-label="System overview" className="grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-border bg-border sm:grid-cols-4">
         <Metric label="Current day" value={`${currentDay}`} sub="of 120" />
         <Metric label="Adherence" value={`${metrics.adherence}%`} sub={`${metrics.totalCompleted} / ${metrics.possible}`} />
-        <Metric label="Completed days" value={`${metrics.completedDays} / ${elapsed}`} sub="all 8 done" />
+        <Metric label="Completed days" value={`${metrics.completedDays} / ${elapsed}`} sub={`all ${total} done`} />
         <Metric
           label="Speaking"
           value={`Stage ${speakingStage}`}
@@ -109,7 +113,7 @@ function AnalysisBoardClient({
         </h2>
         <ul className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           {habitBreakdown.map(({ habit, done, base, pct }) => (
-            <li key={habit.id} className="flex flex-col gap-1.5">
+            <li key={habit.slug} className="flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="truncate text-sm font-medium">{habit.title}</span>
                 <span className="tnum shrink-0 text-xs text-muted-foreground">
@@ -145,7 +149,7 @@ function AnalysisBoardClient({
               <div
                 key={day}
                 onMouseEnter={() => setHovered(day)}
-                title={`Day ${day} · ${labelFor({ state, count })}`}
+                title={`Day ${day} · ${labelFor({ state, count }, total)}`}
                 aria-hidden
                 style={state === "completed" ? ({ "--i": (day - 1) % 12 } as React.CSSProperties) : undefined}
                 className={cn(
@@ -163,7 +167,7 @@ function AnalysisBoardClient({
 
         {/* Legend */}
         <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-          <LegendSwatch className="bg-foreground" label="Completed (8/8)" />
+          <LegendSwatch className="bg-foreground" label={`Completed (${total}/${total})`} />
           <LegendSwatch className="bg-foreground/25" label="Partial" />
           <LegendSwatch className="border-[1.5px] border-ember bg-ember/15" label="Today" />
           <LegendSwatch className="bg-foreground/[0.05]" label="Upcoming" />
@@ -173,11 +177,11 @@ function AnalysisBoardClient({
   );
 }
 
-function labelFor({ state, count }: { state: CellState; count: number }): string {
+function labelFor({ state, count }: { state: CellState; count: number }, total: number): string {
   switch (state) {
-    case "completed": return "Completed (8/8)";
-    case "current": return `Today (${count}/${TOTAL_HABITS})`;
-    case "partial": return count > 0 ? `Partial (${count}/${TOTAL_HABITS})` : "Missed";
+    case "completed": return `Completed (${total}/${total})`;
+    case "current": return `Today (${count}/${total})`;
+    case "partial": return count > 0 ? `Partial (${count}/${total})` : "Missed";
     case "future": return "Upcoming";
   }
 }

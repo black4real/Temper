@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeHabitIds } from "@/lib/ghost-mode/habits";
+import { getHabitSlugs } from "@/lib/ghost-mode/habits-data";
 import { TOTAL_DAYS } from "@/lib/ghost-mode/day";
 
 export type ImportPayload = {
@@ -45,6 +46,8 @@ export async function importGhostModeData(payload: ImportPayload): Promise<Impor
   }
 
   // 2) Day records — validated, deduped by (user, day_number) via upsert.
+  // Completed ids are kept only when they match a commitment this user actually has.
+  const allowedSlugs = await getHabitSlugs(user.id);
   const recordRows = payload.records
     .filter((r) => Number.isFinite(r.dayNumber) && r.dayNumber >= 1 && r.dayNumber <= TOTAL_DAYS)
     .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date))
@@ -52,7 +55,7 @@ export async function importGhostModeData(payload: ImportPayload): Promise<Impor
       user_id: user.id,
       day_number: Math.trunc(r.dayNumber),
       date: r.date,
-      completed_habit_ids: sanitizeHabitIds(r.completedHabitIds),
+      completed_habit_ids: sanitizeHabitIds(r.completedHabitIds, allowedSlugs),
       updated_at: new Date().toISOString(),
     }));
 

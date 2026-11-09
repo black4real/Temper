@@ -10,6 +10,7 @@ step. Secrets stay server-side; only the public anon key and site URL reach the 
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API | Public (RLS-protected). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API | Public anon key only. |
 | `NEXT_PUBLIC_SITE_URL` | Your deployment | e.g. `https://ghost-mode.vercel.app` or a custom domain. Drives metadata, OG image, sitemap and the email-confirm redirect. |
+| `ACCESS_CODE` | Your choice (server-only) | The invite code required on the signup form. **Server-only — never prefix with `NEXT_PUBLIC`.** If unset, all signups are blocked. Not committed to the repo. |
 
 Never set a `service_role` key here — it is not needed, and it must never be exposed to the
 browser or committed. `.env.local` is gitignored.
@@ -17,7 +18,8 @@ browser or committed. `.env.local` is gitignored.
 ## 1. Supabase (one-time)
 1. Create a project at https://supabase.com (Free tier).
 2. SQL Editor → run `supabase/migrations/0001_init.sql` (tables, RLS, profile trigger, the
-   private `recordings` bucket).
+   private `recordings` bucket), then run `supabase/migrations/0002_custom_habits.sql` (the
+   per-user `habits` table, RLS, default-commitments seed, and signup seeding). Run them in order.
 3. **Authentication → URL Configuration:**
    - Site URL: your production URL (`NEXT_PUBLIC_SITE_URL`).
    - Redirect URLs: add `https://YOUR-DOMAIN/auth/confirm` (and `http://localhost:3000/auth/confirm`
@@ -29,8 +31,9 @@ browser or committed. `.env.local` is gitignored.
 1. Push this repo to GitHub (see "Git" below) and import it at https://vercel.com/new, **or** use
    the CLI: `npm i -g vercel && vercel` (then `vercel --prod` for production).
 2. Framework preset: **Next.js** (auto-detected). Build command `next build`, output auto.
-3. Project → Settings → Environment Variables: add the three variables above for the
-   **Production** (and Preview) environments. Set `NEXT_PUBLIC_SITE_URL` to the Vercel URL first;
+3. Project → Settings → Environment Variables: add the variables above for the
+   **Production** (and Preview) environments, including `ACCESS_CODE` (signups are blocked until
+   it's set). Set `NEXT_PUBLIC_SITE_URL` to the Vercel URL first;
    if you later add a custom domain, update it and redeploy.
 4. Deploy. Vercel serves over HTTPS, which the PWA/service worker requires.
 
