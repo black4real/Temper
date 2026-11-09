@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { verifyAccessCode } from "@/lib/auth/access-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ export function AuthForm() {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -33,6 +35,11 @@ export function AuthForm() {
 
     try {
       if (mode === "signup") {
+        const { ok } = await verifyAccessCode(accessCode);
+        if (!ok) {
+          toast.error("Invalid access code.");
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -90,6 +97,25 @@ export function AuthForm() {
           placeholder={mode === "signup" ? "At least 6 characters" : "Your password"}
         />
       </div>
+
+      {mode === "signup" && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="access-code">Access code</Label>
+          <Input
+            id="access-code"
+            type="text"
+            inputMode="text"
+            autoComplete="off"
+            required
+            value={accessCode}
+            onChange={(e) => setAccessCode(e.target.value)}
+            placeholder="Invite code"
+          />
+          <p className="text-xs text-muted-foreground">
+            Ghost Mode is invite-only during the beta.
+          </p>
+        </div>
+      )}
 
       {notice && (
         <p className="text-sm text-muted-foreground" role="status">
