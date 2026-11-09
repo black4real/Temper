@@ -88,10 +88,10 @@ export function ImportFlow({
   return (
     <div className="flex flex-col gap-6">
       {/* Step 1: choose file */}
-      <section className="flex flex-col gap-3 rounded-[10px] border border-border bg-card p-5">
+      <section className="flex flex-col gap-3 border-t border-border pt-6">
         <div>
-          <h2 className="text-sm font-semibold">1 · Choose your export</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="text-base font-semibold">Choose your export</h2>
+          <p className="text-sm text-muted-foreground">
             The <code>data.json</code> exported from the macOS app. Nothing is imported until you
             review the summary and confirm.
           </p>
@@ -102,12 +102,12 @@ export function ImportFlow({
           accept="application/json,.json"
           aria-label="Choose Ghost Mode export file"
           onChange={onFile}
-          className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
+          className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-[2px] file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
         />
       </section>
 
       {parsed && !parsed.ok && (
-        <p className="rounded-md border border-destructive/30 bg-destructive/[0.04] p-3 text-sm text-destructive">
+        <p className="border-l-2 border-destructive pl-3 text-sm text-destructive">
           {parsed.error}
         </p>
       )}
@@ -115,8 +115,8 @@ export function ImportFlow({
       {/* Step 2: preview */}
       {parsed && parsed.ok && !result && (
         <>
-          <section className="flex flex-col gap-4 rounded-[10px] border border-border bg-card p-5">
-            <h2 className="text-sm font-semibold">2 · Review</h2>
+          <section className="flex flex-col gap-5 border-t border-border pt-6">
+            <h2 className="text-base font-semibold">Review before importing</h2>
 
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="Day records" value={parsed.summary.recordCount} />
@@ -126,7 +126,7 @@ export function ImportFlow({
             </dl>
 
             {parsed.summary.startDate && (
-              <label className="flex items-center gap-2.5 rounded-md border border-border bg-background p-3 text-sm">
+              <label className="flex items-center gap-3 border-l-2 border-border py-1 pl-3 text-sm">
                 <input
                   type="checkbox"
                   checked={setStart}
@@ -139,12 +139,10 @@ export function ImportFlow({
             )}
 
             {/* Excluded */}
-            <div className="flex flex-col gap-1.5 rounded-md border border-border bg-background p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                Not imported
-              </p>
+            <div className="flex flex-col gap-1.5 border-l-2 border-border py-1 pl-3">
+              <p className="text-sm font-medium">Not imported</p>
               <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <li>LeetCode progress and problem log{parsed.summary.excluded.leetCodeEntries > 0 ? ` (${parsed.summary.excluded.leetCodeEntries} entries)` : ""} — not imported.</li>
+                <li>LeetCode progress and problem log{parsed.summary.excluded.leetCodeEntries > 0 ? ` (${parsed.summary.excluded.leetCodeEntries} entries)` : ""}</li>
                 {parsed.summary.excluded.hadRecallRules && <li>Recall rules and schedule</li>}
                 {parsed.summary.excluded.hadNotifications && <li>Notification settings</li>}
               </ul>
@@ -152,7 +150,7 @@ export function ImportFlow({
 
             {/* Audio */}
             {parsed.summary.recordingFileNames.length > 0 && (
-              <div className="flex flex-col gap-2 rounded-md border border-border bg-background p-3">
+              <div className="flex flex-col gap-2 border-l-2 border-border py-1 pl-3">
                 <p className="text-sm font-medium">
                   Recordings referenced: {parsed.summary.recordingFileNames.length}
                 </p>
@@ -169,7 +167,7 @@ export function ImportFlow({
                       multiple
                       aria-label="Choose recording files"
                       onChange={onAudio}
-                      className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
+                      className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-[2px] file:border file:border-border file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground hover:file:bg-accent"
                     />
                     {audioFiles.size > 0 && (
                       <Badge variant="secondary" className="w-fit">
@@ -189,7 +187,7 @@ export function ImportFlow({
 
           <div className="flex gap-2">
             <Button onClick={onImport} disabled={importing} className="flex-1">
-              {importing ? "Importing…" : "Import"}
+              {importing ? "Importing" : "Import"}
             </Button>
             <Button
               variant="outline"
@@ -208,8 +206,8 @@ export function ImportFlow({
 
       {/* Step 3: result */}
       {result && result.ok && (
-        <section className="flex flex-col gap-3 rounded-[10px] border border-border bg-card p-5">
-          <h2 className="text-sm font-semibold">Import complete</h2>
+        <section className="flex flex-col gap-3 border-t border-border pt-6">
+          <h2 className="text-base font-semibold">Import complete</h2>
           <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
             <li>{result.importedRecords} day records imported</li>
             <li>{result.importedSessions} speaking sessions imported</li>
@@ -220,7 +218,7 @@ export function ImportFlow({
               Go to Today
             </Button>
             <Button variant="outline" nativeButton={false} render={<Link href="/analysis" />}>
-              View Analysis
+              Open the record
             </Button>
           </div>
         </section>
@@ -232,7 +230,7 @@ export function ImportFlow({
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <dd className="tnum font-display text-xl font-semibold">{value}</dd>
+      <dd className="font-data text-2xl font-medium tracking-[-0.03em]">{value}</dd>
       <dt className="text-xs text-muted-foreground">{label}</dt>
     </div>
   );

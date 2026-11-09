@@ -71,6 +71,9 @@ export function AuthForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex w-full max-w-sm flex-col gap-5" noValidate>
+      <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
+        {mode === "signup" ? "Create your account" : "Sign in"}
+      </h2>
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -112,7 +115,7 @@ export function AuthForm() {
             placeholder="Invite code"
           />
           <p className="text-xs text-muted-foreground">
-            Ghost Mode is invite-only during the beta.
+            Temper is invite only during the beta.
           </p>
         </div>
       )}
@@ -123,32 +126,32 @@ export function AuthForm() {
         </p>
       )}
 
-      <Button type="submit" disabled={loading} className="mt-1 w-full">
+      <Button type="submit" size="lg" disabled={loading} className="mt-1 w-full">
         {loading
           ? mode === "signup"
-            ? "Creating account…"
-            : "Signing in…"
+            ? "Creating account"
+            : "Signing in"
           : mode === "signup"
             ? "Create account"
             : "Sign in"}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        {mode === "signup" ? "Already have an account?" : "New to Ghost Mode?"}{" "}
+      <p className="text-sm text-muted-foreground">
+        {mode === "signup" ? "Already have an account?" : "Have an invite?"}{" "}
         <button
           type="button"
-          className="font-medium text-foreground underline underline-offset-4 hover:text-ember"
+          className="font-medium text-foreground underline decoration-1 underline-offset-4 hover:decoration-2"
           onClick={() => {
             setMode(mode === "signup" ? "signin" : "signup");
             setNotice(null);
           }}
         >
-          {mode === "signup" ? "Sign in" : "Create one"}
+          {mode === "signup" ? "Sign in" : "Create an account"}
         </button>
       </p>
 
       {!envReady && (
-        <p className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <p className="border-l-2 border-border pl-3 text-xs text-muted-foreground">
           Supabase isn&apos;t configured. Copy <code>.env.example</code> to{" "}
           <code>.env.local</code> and add your project URL and anon key (see SETUP.md).
         </p>

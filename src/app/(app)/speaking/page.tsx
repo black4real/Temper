@@ -3,6 +3,7 @@ import { getProfile } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { currentStage, successesAtCurrentStage, type StageInput } from "@/lib/ghost-mode/speaking";
 import { SpeakingSession } from "@/components/speaking/speaking-session";
+import { PageTitle } from "@/components/app/page-title";
 
 export const metadata = { title: "Speaking" };
 
@@ -26,16 +27,20 @@ export default async function SpeakingPage() {
   const totalSuccessful = sessions.filter((s) => s.completedTarget).length;
 
   return (
-    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[720px] flex-1 px-5 py-8 sm:py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Speaking</h1>
-        <Link
-          href="/speaking/history"
-          className="text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          History
-        </Link>
-      </div>
+    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[1040px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
+      <PageTitle
+        title="Speaking"
+        lede="Talk on the topic until the bar reaches the target. Hit the target and today's speaking commitment is done."
+        aside={
+          <Link
+            href="/speaking/history"
+            className="text-sm text-muted-foreground underline decoration-1 underline-offset-4 transition-colors hover:text-foreground hover:decoration-2"
+          >
+            Past sessions
+          </Link>
+        }
+        className="mb-10"
+      />
 
       <SpeakingSession
         userId={user.id}

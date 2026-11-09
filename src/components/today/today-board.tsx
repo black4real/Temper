@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { type Habit } from "@/lib/ghost-mode/habits";
-import { computeDayNumber, dateForDay, formatLongDate } from "@/lib/ghost-mode/day";
+import { computeDayNumber, dateForDay, formatLongDate, TOTAL_DAYS } from "@/lib/ghost-mode/day";
 import { saveDayRecord } from "@/lib/ghost-mode/actions";
-import { Skeleton } from "@/components/ui/skeleton";
+import { TEMPER_NAMES, temperIndex } from "@/lib/ghost-mode/temper";
 import { useIsClient } from "@/lib/use-is-client";
+import { useHeat } from "@/motion/heat";
+import { TemperBar } from "@/components/temper/temper-bar";
 
 type TodayBoardProps = {
   startDate: string;
@@ -21,19 +23,18 @@ export function TodayBoard(props: TodayBoardProps) {
   const isClient = useIsClient();
 
   if (!isClient) {
+    // The day comes from the device clock, so the real board renders on the client only.
     return (
-      <div className="flex flex-col gap-6" aria-busy>
-        <Skeleton className="h-9 w-40" />
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: Math.max(1, props.habits.length) }).map((_, i) => (
-            <Skeleton key={i} className="h-[60px] w-full" />
-          ))}
+      <div className="flex flex-col gap-10" aria-busy>
+        <div className="flex flex-col gap-5">
+          <div className="h-3 w-40 rounded-[2px] bg-muted" />
+          <div className="h-[clamp(72px,14vw,176px)] w-[min(55%,380px)] rounded-[2px] bg-muted/80" />
+          <div className="steel h-14 w-full rounded-[2px] opacity-70 sm:h-16" />
         </div>
       </div>
     );
   }
 
-  // Rendered only on the client, so the device clock drives the day and there is no mismatch.
   return <TodayBoardClient {...props} />;
 }
 
@@ -42,7 +43,9 @@ function TodayBoardClient({ startDate, initialRecords, habits, layout = "blocks"
   const [completed, setCompleted] = useState<Set<string>>(
     () => new Set(initialRecords[computeDayNumber(startDate)] ?? []),
   );
+  const [sweepKey, setSweepKey] = useState(0);
   const [, startSaving] = useTransition();
+  const hostRef = useRef<HTMLDivElement>(null);
 
   const dateISO = useMemo(() => dateForDay(startDate, dayNumber), [startDate, dayNumber]);
   const total = habits.length;
@@ -51,7 +54,12 @@ function TodayBoardClient({ startDate, initialRecords, habits, layout = "blocks"
     () => habits.reduce((n, h) => (completed.has(h.slug) ? n + 1 : n), 0),
     [habits, completed],
   );
+  const ratio = total > 0 ? count / total : 0;
   const allDone = total > 0 && count >= total;
+  const band = temperIndex(ratio);
+
+  // One driver: today's completion heats everything that carries the concept.
+  useHeat(hostRef, ratio);
 
   function persist(next: Set<string>, previous: Set<string>) {
     startSaving(async () => {
@@ -74,67 +82,96 @@ function TodayBoardClient({ startDate, initialRecords, habits, layout = "blocks"
     if (next.has(habit.slug)) next.delete(habit.slug);
     else next.add(habit.slug);
     setCompleted(next); // optimistic
+    const nextCount = habits.reduce((n, h) => (next.has(h.slug) ? n + 1 : n), 0);
+    if (total > 0 && nextCount >= total && count < total) setSweepKey((k) => k + 1); // the day sets
     persist(next, previous);
   }
 
+  const outOfRange = dayNumber > TOTAL_DAYS;
+
   return (
-    <div className="flex flex-col gap-7">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span aria-hidden className="size-2 rounded-full bg-ember" />
-          <p className="tnum text-sm font-medium text-muted-foreground">
-            Day {dayNumber} / 120
+    <div ref={hostRef} className="flex flex-col gap-12">
+      {/* Hero: the stamped day numeral and today's bar */}
+      <section aria-labelledby="today-heading" className="flex flex-col gap-6">
+        <p className="text-sm text-muted-foreground">{formatLongDate(dateISO)}</p>
+        <h1 id="today-heading" className="flex items-end gap-3">
+          <span
+            aria-hidden
+            className="numeral text-[clamp(88px,17vw,200px)] transition-colors duration-700"
+            style={{ color: allDone ? "var(--heat)" : undefined }}
+          >
+            {String(dayNumber).padStart(3, "0")}
+          </span>
+          <span aria-hidden className="font-data pb-[0.6em] text-sm text-muted-foreground sm:text-base">
+            / {TOTAL_DAYS}
+          </span>
+          <span className="sr-only">
+            Day {dayNumber} of {TOTAL_DAYS}
+          </span>
+        </h1>
+
+        <TemperBar
+          ratio={ratio}
+          ticks={total}
+          sweepKey={sweepKey}
+          label="Today's heat"
+          valueText={`${count} of ${total} commitments done, ${TEMPER_NAMES[band]}`}
+        />
+
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="font-data text-sm">
+            {count} of {total}
+          </p>
+          <p
+            aria-live="polite"
+            className={cn("text-sm transition-colors", allDone ? "font-medium text-foreground" : "text-muted-foreground")}
+          >
+            {allDone ? `Day ${dayNumber} is set. ${TEMPER_NAMES[band]}.` : TEMPER_NAMES[band]}
           </p>
         </div>
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Today</h1>
-        <p className="text-sm text-muted-foreground">{formatLongDate(dateISO)}</p>
-      </header>
+        {outOfRange && (
+          <p className="text-sm text-muted-foreground">
+            Your 120 days are complete. Set a new start date in Settings to begin another cycle.
+          </p>
+        )}
+      </section>
 
-      <section aria-label="Today's commitments" className="flex flex-col gap-2">
-        <div className="mb-1 flex items-baseline justify-between gap-3">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Today&apos;s commitments
+      {/* Commitments on a rule system */}
+      <section aria-labelledby="commitments-heading" className="flex flex-col gap-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="commitments-heading" className="text-base font-semibold">
+            Commitments
           </h2>
           <Link
             href="/settings#commitments"
-            className="rounded-sm text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="text-sm text-muted-foreground underline decoration-1 underline-offset-4 transition-colors hover:text-foreground hover:decoration-2"
           >
             Edit
           </Link>
         </div>
-        <ul className={cn(layout === "blocks" ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "flex flex-col gap-2")}>
-          {habits.map((habit) => (
-            <li key={habit.slug}>
-              <CommitmentRow
-                habit={habit}
-                done={completed.has(habit.slug)}
-                onToggle={() => toggle(habit)}
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
 
-      <section aria-label="Completion" className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <p className={cn("tnum text-sm font-medium", allDone ? "text-foreground" : "text-muted-foreground")}>
-            {count} / {total} completed
+        {total === 0 ? (
+          <p className="border-t border-border py-6 text-sm text-muted-foreground">
+            No commitments yet. Add your first one in Settings.
           </p>
-          {allDone && (
-            <p className="text-sm font-medium text-foreground">Day {dayNumber} sealed</p>
-          )}
-        </div>
-        <div className="h-[3px] w-full overflow-hidden rounded-full bg-border">
-          <div
-            className="h-full rounded-full bg-foreground transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }}
-            role="progressbar"
-            aria-valuenow={count}
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-label="Commitments completed"
-          />
-        </div>
+        ) : (
+          <ul
+            className={cn(
+              "border-t border-border",
+              layout === "blocks" && "sm:grid sm:grid-cols-2 sm:gap-x-10",
+            )}
+          >
+            {habits.map((habit) => (
+              <li key={habit.slug}>
+                <CommitmentRow
+                  habit={habit}
+                  done={completed.has(habit.slug)}
+                  onToggle={() => toggle(habit)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
@@ -151,72 +188,80 @@ function CommitmentRow({
 }) {
   const inner = (
     <>
-      <Check done={done} />
+      {/* The edge heats on hover/focus; once done it carries today's heat. */}
+      <span
+        aria-hidden
+        className={cn(
+          "absolute top-3 bottom-3 left-0 w-[3px] transition-[width,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "group-hover:w-[6px] group-focus-visible:w-[6px]",
+          done ? "" : "bg-border group-hover:bg-ember group-focus-visible:bg-ember",
+        )}
+        style={done ? { backgroundColor: "var(--heat)" } : undefined}
+      />
+      <Check done={done} link={habit.kind === "link"} />
       <span className="flex min-w-0 flex-col">
         <span
           className={cn(
-            "truncate text-[15px] font-medium transition-colors",
-            done ? "text-foreground line-through decoration-muted-foreground/50" : "text-foreground",
+            "truncate text-[17px] font-medium transition-colors",
+            done && "text-muted-foreground line-through decoration-1",
           )}
         >
           {habit.title}
         </span>
-        <span className="truncate text-[13px] text-muted-foreground">{habit.detail}</span>
+        {habit.detail && <span className="truncate text-[13px] text-muted-foreground">{habit.detail}</span>}
       </span>
     </>
   );
 
   const base =
-    "flex w-full cursor-pointer touch-manipulation select-none items-center gap-3.5 rounded-[10px] border px-4 py-3.5 text-left transition-[background-color,transform] duration-100 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0";
-  const state = done
-    ? "border-border bg-accent/40"
-    : "border-border bg-card hover:bg-accent/40";
+    "group relative flex w-full cursor-pointer touch-manipulation select-none items-center gap-4 border-b border-border py-4 pr-2 pl-5 text-left outline-none transition-colors duration-150 hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring active:bg-muted/70";
 
   if (habit.kind === "link" && habit.href) {
     return (
-      <Link href={habit.href} className={cn(base, state)} aria-label={`${habit.title} — open practice`}>
+      <Link href={habit.href} className={base} aria-label={`${habit.title}, ${done ? "done" : "not done"}, open practice`}>
         {inner}
-        <span aria-hidden className="ml-auto text-muted-foreground">
-          <ChevronRight />
+        <span className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground transition-colors group-hover:text-foreground">
+          Practice
+          <svg viewBox="0 0 24 24" className="size-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
         </span>
       </Link>
     );
   }
 
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={done}
-      className={cn(base, state)}
-    >
+    <button type="button" onClick={onToggle} aria-pressed={done} className={base}>
       {inner}
     </button>
   );
 }
 
-function Check({ done }: { done: boolean }) {
+/** A stamped square. Setting it presses the check in with a short settle. */
+function Check({ done, link }: { done: boolean; link?: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "flex size-5 shrink-0 items-center justify-center rounded-full border transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        done ? "scale-100 border-foreground bg-foreground" : "border-muted-foreground/40 bg-transparent",
+        "flex size-6 shrink-0 items-center justify-center rounded-[2px] border transition-[background-color,border-color,scale] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        done ? "scale-100 border-foreground bg-foreground" : "border-muted-foreground/50 bg-transparent group-active:scale-90",
+        link && !done && "border-dashed",
       )}
     >
       {done && (
-        <svg viewBox="0 0 24 24" className="size-3 text-background" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 6 9 17l-5-5" />
+        <svg
+          viewBox="0 0 24 24"
+          className="size-4 text-background"
+          style={{ animation: "heat-in 260ms cubic-bezier(0.22,1,0.36,1) both" }}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3.25"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        >
+          <path d="M4.5 12.5l5 5 10-11" />
         </svg>
       )}
     </span>
-  );
-}
-
-function ChevronRight() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
   );
 }

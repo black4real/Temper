@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDuration, stageTitle } from "@/lib/ghost-mode/speaking";
 import { deleteSpeakingSession } from "@/lib/ghost-mode/speaking-actions";
@@ -29,7 +28,7 @@ function formatDateTime(iso: string): string {
 
 export function SpeakingHistoryList({ items }: { items: HistoryItem[] }) {
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="flex flex-col border-t border-border">
       {items.map((item) => (
         <li key={item.id}>
           <SessionCard item={item} />
@@ -61,59 +60,55 @@ function SessionCard({ item }: { item: HistoryItem }) {
   const shown = expanded || !long ? item.transcript : `${item.transcript.slice(0, 180)}…`;
 
   return (
-    <div className="rounded-[10px] border border-border bg-card p-4">
-      <div className="flex items-start justify-between gap-3">
+    <article className="relative flex flex-col gap-3 border-b border-border py-6 pl-5">
+      <span
+        aria-hidden
+        className="absolute top-6 bottom-6 left-0 w-[3px]"
+        style={{ backgroundColor: item.completedTarget ? "var(--t6)" : "var(--t2)" }}
+      />
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="tnum text-xs text-muted-foreground">
+          <p className="font-data text-xs text-muted-foreground">
             Day {item.dayNumber} · {formatDateTime(item.date)} · {stageTitle(item.stage)}
           </p>
-          <p className="mt-0.5 font-display text-lg font-semibold tracking-tight">{item.topic}</p>
+          <h2 className="mt-1.5 font-display text-xl leading-tight font-bold tracking-[-0.02em]">{item.topic}</h2>
         </div>
-        <Badge variant={item.completedTarget ? "default" : "secondary"} className="shrink-0">
+        <p className="font-data shrink-0 pt-0.5 text-xs">
           {item.completedTarget ? "Target met" : "Below target"}
-        </Badge>
+        </p>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span className="tnum">
-          {formatDuration(item.actualDurationSeconds)} / {formatDuration(item.targetDurationSeconds)}
-        </span>
-        {item.curveballs.map((c) => (
-          <Badge key={c} variant="outline" className="font-normal">
-            {c}
-          </Badge>
-        ))}
-      </div>
+      <p className="font-data text-xs text-muted-foreground">
+        {formatDuration(item.actualDurationSeconds)} of {formatDuration(item.targetDurationSeconds)}
+        {item.curveballs.length > 0 && ` · ${item.curveballs.join(", ")}`}
+      </p>
 
       {item.transcript ? (
-        <div className="mt-3">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{shown}</p>
+        <div>
+          <p className="max-w-[68ch] whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90">{shown}</p>
           {long && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="mt-1 text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              aria-expanded={expanded}
+              className="mt-1.5 text-sm text-muted-foreground underline decoration-1 underline-offset-4 hover:text-foreground hover:decoration-2"
             >
-              {expanded ? "Show less" : "Show more"}
+              {expanded ? "Show less" : "Show the full transcript"}
             </button>
           )}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">No transcript.</p>
+        <p className="text-sm text-muted-foreground">No transcript.</p>
       )}
 
-      {item.audioUrl && (
-        <div className="mt-3">
-          <audio controls src={item.audioUrl} className="w-full" />
-        </div>
-      )}
+      {item.audioUrl && <audio controls src={item.audioUrl} className="w-full max-w-[520px]" />}
 
-      <div className="mt-3 flex justify-end">
+      <div className="flex justify-end">
         {confirm ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Delete this session?</span>
+            <span className="text-sm text-muted-foreground">Delete this session for good?</span>
             <Button variant="destructive" size="sm" onClick={onDelete} disabled={deleting}>
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? "Deleting" : "Delete"}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setConfirm(false)} disabled={deleting}>
               Cancel
@@ -125,6 +120,6 @@ function SessionCard({ item }: { item: HistoryItem }) {
           </Button>
         )}
       </div>
-    </div>
+    </article>
   );
 }

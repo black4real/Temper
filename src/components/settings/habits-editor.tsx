@@ -36,14 +36,14 @@ export function HabitsEditor({ habits, editable }: { habits: Habit[]; editable: 
   return (
     <section
       id="commitments"
-      className="flex scroll-mt-20 flex-col gap-4 rounded-[10px] border border-border bg-card p-5"
+      className="flex scroll-mt-24 flex-col gap-5"
     >
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 className="text-sm font-semibold">Commitments</h2>
-          <p className="text-xs text-muted-foreground">
-            Your daily checklist. Rename, reorder, add or remove — Speaking stays because it drives
-            the practice screen.
+          <h2 className="font-display text-2xl font-extrabold tracking-[-0.03em]">Commitments</h2>
+          <p className="max-w-[56ch] text-sm text-muted-foreground">
+            Your daily checklist. Rename, reorder, add or remove. Speaking stays because it runs the
+            practice screen.
           </p>
         </div>
         {editable && (
@@ -54,7 +54,7 @@ export function HabitsEditor({ habits, editable }: { habits: Habit[]; editable: 
       </div>
 
       {!editable ? (
-        <div className="flex flex-col items-start gap-3 rounded-[8px] border border-border bg-muted/30 p-4">
+        <div className="flex flex-col items-start gap-3 border-l-2 border-ember py-1 pl-4">
           <p className="text-sm text-muted-foreground">
             Customizing commitments needs the latest database update (migration 0002). Once it&apos;s
             applied in Supabase, load your starting set here.
@@ -69,7 +69,7 @@ export function HabitsEditor({ habits, editable }: { habits: Habit[]; editable: 
         </div>
       ) : (
         <>
-          <ul className="flex flex-col gap-2.5">
+          <ul className="flex flex-col border-t border-border">
             {habits.map((habit, i) => (
               <HabitRow
                 key={habit.slug}
@@ -121,7 +121,7 @@ function HabitRow({
   const dirty = title.trim() !== habit.title || detail.trim() !== habit.detail;
 
   return (
-    <li className="flex flex-col gap-2 rounded-[8px] border border-border bg-background p-3">
+    <li className="flex flex-col gap-3 border-b border-border py-4">
       <div className="flex items-center gap-2">
         <div className="flex shrink-0 flex-col">
           <ArrowButton label="Move up" disabled={isFirst || pending} onClick={() => onMove("up")}>
@@ -154,7 +154,7 @@ function HabitRow({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {habit.isSystem ? (
-            <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+            <span className="font-data text-[11px] text-muted-foreground">
               Required
             </span>
           ) : confirmDelete ? (
@@ -230,8 +230,8 @@ function AddHabit({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2 rounded-[8px] border border-dashed border-border p-3">
-      <Label htmlFor="new-habit-title" className="text-xs font-medium text-muted-foreground">
+    <form onSubmit={submit} className="flex flex-col gap-3 border border-dashed border-input p-4">
+      <Label htmlFor="new-habit-title" className="text-sm font-medium">
         Add a commitment
       </Label>
       <Input
@@ -274,7 +274,7 @@ function ArrowButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex size-6 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-30"
+      className="flex size-8 items-center justify-center rounded-[2px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-30"
     >
       <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {children}

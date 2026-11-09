@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useIsClient } from "@/lib/use-is-client";
+import { useHeat } from "@/motion/heat";
+import { TemperBar } from "@/components/temper/temper-bar";
 import { createClient } from "@/lib/supabase/client";
 import { computeDayNumber, dateForDay } from "@/lib/ghost-mode/day";
 import {
@@ -41,9 +42,9 @@ export function SpeakingSession(props: Props) {
   const isClient = useIsClient();
   if (!isClient) {
     return (
-      <div className="flex flex-col gap-4" aria-busy>
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-40 w-full" />
+      <div className="grid gap-12 lg:grid-cols-12 lg:gap-10" aria-busy>
+        <div className="h-64 rounded-[2px] bg-muted/60 lg:col-span-5" />
+        <div className="h-80 rounded-[2px] bg-muted/40 lg:col-span-7" />
       </div>
     );
   }
@@ -135,103 +136,89 @@ function SpeakingSessionClient({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Stage summary */}
-      <section className="rounded-[10px] border border-border bg-card p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="font-display text-lg font-semibold tracking-tight">{stageTitle(stage)}</p>
-            <p className="text-sm text-muted-foreground">{stagePurpose(stage)}</p>
+    <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
+      {/* The brief: stage, topic, curveballs */}
+      <div className="flex flex-col gap-10 lg:col-span-5">
+        <section aria-labelledby="stage-heading" className="flex flex-col gap-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="stage-heading" className="text-base font-semibold">
+              {stageTitle(stage)}
+            </h2>
+            <p className="font-data text-xs text-muted-foreground">target {formatDuration(target)}</p>
           </div>
-          <div className="text-right">
-            <p className="tnum text-sm font-medium">{formatDuration(target)}</p>
-            <p className="text-xs text-muted-foreground">target</p>
+          <p className="text-sm text-muted-foreground">{stagePurpose(stage)}</p>
+          <div role="group" aria-label="Practice stage" className="grid grid-cols-4 border border-input">
+            {[1, 2, 3, 4].map((s) => (
+              <button
+                key={s}
+                type="button"
+                disabled={locked}
+                onClick={() => changeStage(s)}
+                aria-pressed={stage === s}
+                aria-label={`Stage ${s}`}
+                className={cn(
+                  "font-data relative h-11 text-sm outline-none transition-colors not-first:border-l not-first:border-input disabled:opacity-45",
+                  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                  stage === s ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                {s}
+              </button>
+            ))}
           </div>
-        </div>
-        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="tnum">{successesAtStage} / 5 at this stage</span>
-          <span aria-hidden>·</span>
-          <span className="tnum">{totalSuccessful} total successful</span>
-        </div>
-      </section>
+          <p className="font-data text-xs text-muted-foreground">
+            {successesAtStage} of 5 at this stage · {totalSuccessful} total
+            {stage !== currentStage && ` · earned stage ${currentStage}`}
+          </p>
+        </section>
 
-      {/* Stage selector */}
-      <section className="flex flex-col gap-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Practice stage
-        </h2>
-        <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4].map((s) => (
-            <button
-              key={s}
-              type="button"
-              disabled={locked}
-              onClick={() => changeStage(s)}
-              aria-pressed={stage === s}
-              className={cn(
-                "rounded-md border py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
-                stage === s
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-        {stage !== currentStage && (
-          <p className="text-xs text-muted-foreground">
-            Manual stage. Your earned stage is {currentStage}.
+        <section aria-labelledby="topic-heading" className="flex flex-col gap-4 border-t border-border pt-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <h2 id="topic-heading" className="text-sm text-muted-foreground">
+                Topic
+              </h2>
+              <p className="font-display text-[clamp(26px,3.6vw,36px)] leading-[1.02] font-bold tracking-[-0.03em]">
+                {topic}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={onShuffle} disabled={locked} className="shrink-0">
+              Shuffle
+            </Button>
+          </div>
+          {curveballs.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">Curveball{curveballs.length > 1 ? "s" : ""}</p>
+              <ul className="flex flex-col">
+                {curveballs.map((c) => (
+                  <li key={c} className="border-l-2 border-ember py-1 pl-3 text-[15px] font-medium">
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {!recorder.transcriptionSupported && (
+          <p className="border-l-2 border-border pl-3 text-sm text-muted-foreground">
+            Live transcription isn&apos;t available in this browser (it works best in Chrome or Edge).
+            You can still record, then type your transcript when you finish.
           </p>
         )}
-      </section>
+      </div>
 
-      {/* Prompt */}
-      <section className="rounded-[10px] border border-border bg-card p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Topic
-            </p>
-            <p className="font-display text-2xl font-semibold tracking-tight">{topic}</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={onShuffle} disabled={locked}>
-            Shuffle
-          </Button>
-        </div>
-        {curveballs.length > 0 && (
-          <div className="mt-4 flex flex-col gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Curveball{curveballs.length > 1 ? "s" : ""}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {curveballs.map((c) => (
-                <Badge key={c} variant="secondary" className="text-sm font-medium">
-                  {c}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Transcription support banner */}
-      {!recorder.transcriptionSupported && (
-        <p className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Live transcription isn&apos;t available in this browser (best in Chrome or Edge). You can
-          still record and type your transcript after you finish.
-        </p>
-      )}
-
-      {/* Recorder */}
-      <Recorder
-        recorder={recorder}
-        target={target}
-        metTarget={metTarget}
-        saveRecordings={saveRecordings}
-        saving={saving}
-        onSave={onSave}
-      />
+      {/* The recorder */}
+      <div className="lg:col-span-7">
+        <Recorder
+          recorder={recorder}
+          target={target}
+          metTarget={metTarget}
+          saveRecordings={saveRecordings}
+          saving={saving}
+          onSave={onSave}
+        />
+      </div>
     </div>
   );
 }
@@ -252,61 +239,72 @@ function Recorder({
   onSave: () => void;
 }) {
   const { status, elapsed, transcript, interim, error } = recorder;
-  const pct = Math.min(100, (elapsed / target) * 100);
+  const hostRef = useRef<HTMLElement>(null);
+  const live = status === "recording" || status === "stopped";
+  const ratio = live ? Math.min(1, elapsed / Math.max(1, target)) : 0;
+  // Speaking heats its own bar toward the target, on the same driver as Today.
+  useHeat(hostRef, ratio);
 
   return (
-    <section className="flex flex-col gap-4 rounded-[10px] border border-border bg-card p-5">
-      {error && <p className="text-sm text-destructive">{error}</p>}
+    <section
+      ref={hostRef}
+      aria-labelledby="recorder-heading"
+      className="flex flex-col gap-6 border border-border bg-card/40 p-5 sm:p-8"
+    >
+      <h2 id="recorder-heading" className="sr-only">
+        Recorder
+      </h2>
+      {error && <p className="border-l-2 border-destructive pl-3 text-sm text-destructive">{error}</p>}
+
+      <div className="flex items-end justify-between gap-4">
+        <p className="numeral text-[clamp(64px,10vw,112px)]" style={{ color: metTarget ? "var(--heat)" : undefined }}>
+          <span className="sr-only">Elapsed </span>
+          {formatDuration(elapsed)}
+        </p>
+        <p className="font-data pb-2 text-sm text-muted-foreground">/ {formatDuration(target)}</p>
+      </div>
+
+      <TemperBar
+        ratio={ratio}
+        sweepKey={metTarget ? 1 : 0}
+        label="Speaking time"
+        valueText={`${formatDuration(elapsed)} of ${formatDuration(target)}`}
+      />
 
       {status === "idle" && (
-        <div className="flex flex-col items-center gap-3 py-4">
-          <Button
-            size="lg"
-            onClick={() => void recorder.start()}
-            disabled={!recorder.recordingSupported}
-            className="min-w-44"
-          >
+        <div className="flex flex-col gap-3">
+          <Button size="lg" onClick={() => void recorder.start()} disabled={!recorder.recordingSupported}>
+            <Mic aria-hidden />
             Start speaking
           </Button>
           {!recorder.recordingSupported && (
-            <p className="text-sm text-muted-foreground">Recording isn&apos;t supported here.</p>
+            <p className="text-sm text-muted-foreground">This browser can&apos;t record audio.</p>
           )}
         </div>
       )}
 
       {status === "requesting" && (
-        <div className="flex justify-center py-4">
-          <Button size="lg" disabled className="min-w-44">
-            Requesting mic…
-          </Button>
-        </div>
+        <Button size="lg" disabled>
+          Waiting for the microphone
+        </Button>
       )}
 
       {status === "recording" && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span aria-hidden className="size-2.5 animate-pulse rounded-full bg-ember" />
-              <span className="text-sm font-medium">Recording</span>
-            </div>
-            <span className="tnum text-sm text-muted-foreground">
-              {formatDuration(elapsed)} / {formatDuration(target)}
-            </span>
-          </div>
-          <div className="h-[3px] w-full overflow-hidden rounded-full bg-border">
-            <div
-              className={cn("h-full rounded-full transition-[width] duration-500", metTarget ? "bg-foreground" : "bg-ember")}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-          <div className="min-h-24 rounded-md border border-border bg-background p-3 text-sm leading-relaxed">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            <span aria-hidden className="size-2 animate-pulse bg-ember" />
+            Recording
+          </p>
+          <div className="min-h-32 border-l-2 border-border py-1 pl-4 text-[15px] leading-relaxed">
             {transcript || interim ? (
               <p>
                 {transcript} <span className="text-muted-foreground">{interim}</span>
               </p>
             ) : (
               <p className="text-muted-foreground">
-                {recorder.transcriptionSupported ? "Listening…" : "Recording… transcript can be added after."}
+                {recorder.transcriptionSupported
+                  ? "Listening. Your words appear here as you speak."
+                  : "Recording. You can type the transcript when you stop."}
               </p>
             )}
           </div>
@@ -317,44 +315,46 @@ function Recorder({
       )}
 
       {status === "stopped" && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <span className="tnum text-sm text-muted-foreground">
-              Spoke {formatDuration(elapsed)} / {formatDuration(target)}
+        <div className="flex flex-col gap-5">
+          <p className="font-data text-sm">
+            {metTarget ? "Target met" : "Below target"}
+            <span className="text-muted-foreground">
+              {" "}
+              · spoke {formatDuration(elapsed)} of {formatDuration(target)}
             </span>
-            <Badge variant={metTarget ? "default" : "secondary"}>
-              {metTarget ? "Target met" : "Below target"}
-            </Badge>
-          </div>
+          </p>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="transcript" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="transcript" className="text-sm font-medium">
               Transcript
             </label>
             <textarea
               id="transcript"
               value={transcript}
               onChange={(e) => recorder.setTranscript(e.target.value)}
-              rows={5}
-              placeholder="Your transcript…"
-              className="w-full resize-y rounded-md border border-input bg-background p-3 text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              rows={6}
+              placeholder="Type or correct what you said"
+              className="w-full resize-y rounded-[2px] border border-input bg-background p-3 text-[15px] leading-relaxed outline-none focus-visible:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             />
           </div>
 
           {recorder.audioUrl && (
-            <div className="flex flex-col gap-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Recording preview {saveRecordings ? "" : "(not saved — retention is off)"}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">
+                Recording preview
+                {!saveRecordings && (
+                  <span className="font-normal text-muted-foreground"> (not kept: saving recordings is off)</span>
+                )}
               </p>
               <audio controls src={recorder.audioUrl} className="w-full" />
             </div>
           )}
 
           <div className="flex gap-2">
-            <Button onClick={onSave} disabled={saving} className="flex-1">
-              {saving ? "Saving…" : "Save session"}
+            <Button size="lg" onClick={onSave} disabled={saving} className="flex-1">
+              {saving ? "Saving" : "Save session"}
             </Button>
-            <Button variant="outline" onClick={recorder.reset} disabled={saving}>
+            <Button size="lg" variant="outline" onClick={recorder.reset} disabled={saving}>
               Discard
             </Button>
           </div>

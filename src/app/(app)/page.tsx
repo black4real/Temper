@@ -21,7 +21,7 @@ export default async function TodayPage() {
   }
 
   return (
-    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[720px] flex-1 px-5 py-8 sm:py-10">
+    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[1040px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
       <TodayBoard
         startDate={profile.start_date}
         initialRecords={records}

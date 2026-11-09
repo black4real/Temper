@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/supabase/auth";
 import { SpeakingHistoryList, type HistoryItem } from "@/components/speaking/speaking-history-list";
+import { PageTitle } from "@/components/app/page-title";
 
 export const metadata = { title: "Speaking history" };
 
@@ -45,20 +46,24 @@ export default async function SpeakingHistoryPage() {
   );
 
   return (
-    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[720px] flex-1 px-5 py-8 sm:py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">History</h1>
-        <Link
-          href="/speaking"
-          className="text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          Practice
-        </Link>
-      </div>
+    <main id="main" tabIndex={-1} className="outline-none mx-auto w-full max-w-[880px] flex-1 px-5 pt-8 pb-12 sm:px-8 sm:pt-12">
+      <PageTitle
+        title="Past sessions"
+        lede="Every session you saved, newest first, with its transcript and recording."
+        aside={
+          <Link
+            href="/speaking"
+            className="text-sm text-muted-foreground underline decoration-1 underline-offset-4 transition-colors hover:text-foreground hover:decoration-2"
+          >
+            Back to practice
+          </Link>
+        }
+        className="mb-10"
+      />
 
       {items.length === 0 ? (
-        <p className="rounded-[10px] border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          No speaking sessions yet. Complete one on the Practice screen and it&apos;ll appear here.
+        <p className="border-y border-border py-8 text-sm text-muted-foreground">
+          No sessions yet. Save one from the practice screen and it shows up here.
         </p>
       ) : (
         <SpeakingHistoryList items={items} />

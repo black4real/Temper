@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { applyTheme, type Theme } from "@/lib/theme";
 import { computeDayNumber, toLocalISODate } from "@/lib/ghost-mode/day";
@@ -35,12 +34,11 @@ export function SettingsForm({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Start date */}
-      <Section title="System start date" desc="Day 1 of your 120-day cycle.">
+    <div className="flex flex-col border-t border-border">
+      <Row title="Start date" desc="Day 1 of your 120 days. Changing it shifts which day today is.">
         <Input
           type="date"
-          aria-label="System start date"
+          aria-label="Start date"
           value={startDate}
           max="2100-12-31"
           onChange={(e) => {
@@ -50,13 +48,13 @@ export function SettingsForm({ profile }: { profile: Profile }) {
               save({ start_date: e.target.value }, () => setStartDate(prev));
             }
           }}
-          className="w-full max-w-56"
+          className="w-full max-w-60"
         />
-      </Section>
+      </Row>
 
-      {/* Theme */}
-      <Section title="Theme">
+      <Row title="Theme" desc="Blued steel at night, brushed steel by day.">
         <Segmented
+          label="Theme"
           options={[
             { value: "system", label: "System" },
             { value: "light", label: "Light" },
@@ -74,14 +72,14 @@ export function SettingsForm({ profile }: { profile: Profile }) {
             });
           }}
         />
-      </Section>
+      </Row>
 
-      {/* Habit layout */}
-      <Section title="Habit layout" desc="How today's commitments are arranged.">
+      <Row title="Today layout" desc="Two columns of commitments on wide screens, or one list.">
         <Segmented
+          label="Today layout"
           options={[
-            { value: "blocks", label: "Blocks" },
-            { value: "minimal", label: "Minimal" },
+            { value: "blocks", label: "Two columns" },
+            { value: "minimal", label: "One list" },
           ]}
           value={layout}
           onChange={(v) => {
@@ -91,14 +89,10 @@ export function SettingsForm({ profile }: { profile: Profile }) {
             save({ habit_layout: next }, () => setLayout(prev));
           }}
         />
-      </Section>
+      </Row>
 
-      {/* Save recordings */}
-      <Section title="Speaking" desc="Retain audio recordings. Transcripts are always saved.">
-        <div className="flex items-center justify-between rounded-[10px] border border-border bg-card px-4 py-3">
-          <Label htmlFor="save-recordings" className="text-sm font-medium">
-            Save recordings
-          </Label>
+      <Row title="Keep recordings" desc="Store the audio of each speaking session. Transcripts are always kept.">
+        <label htmlFor="save-recordings" className="flex items-center gap-3 text-sm">
           <Switch
             id="save-recordings"
             checked={saveRecordings}
@@ -108,17 +102,24 @@ export function SettingsForm({ profile }: { profile: Profile }) {
               save({ save_recordings: v }, () => setSaveRecordings(prev));
             }}
           />
+          {saveRecordings ? "On" : "Off"}
+        </label>
+      </Row>
+
+      <Row title="Your data" desc="Download everything you've recorded, or bring in an export from the Mac app.">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" nativeButton={false} render={<a href="/api/export?format=json" download />}>
+            Download JSON
+          </Button>
+          <Button variant="outline" nativeButton={false} render={<a href="/api/export?format=csv" download />}>
+            Download CSV
+          </Button>
+          <Button variant="ghost" nativeButton={false} render={<Link href="/import" />}>
+            Import from the Mac app
+          </Button>
         </div>
-      </Section>
+      </Row>
 
-      {/* Data import */}
-      <Section title="Data" desc="Bring in progress exported from the macOS app.">
-        <Button variant="outline" nativeButton={false} render={<Link href="/import" />}>
-          Import data
-        </Button>
-      </Section>
-
-      {/* Danger zone */}
       <ResetControls startDate={startDate} disabled={saving} onDone={() => router.refresh()} />
     </div>
   );
@@ -163,20 +164,12 @@ function ResetControls({
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        Reset
-      </h2>
-
-      <div className="flex items-center justify-between gap-3 rounded-[10px] border border-border bg-card px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">Reset today&apos;s progress</p>
-          <p className="text-xs text-muted-foreground">Clears today&apos;s nine checkboxes.</p>
-        </div>
+    <>
+      <Row title="Reset today" desc="Clears today's checkmarks. Other days stay as they are.">
         {confirmToday ? (
           <div className="flex items-center gap-2">
             <Button size="sm" variant="destructive" onClick={doResetToday} disabled={busy}>
-              Confirm
+              Clear today
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setConfirmToday(false)} disabled={busy}>
               Cancel
@@ -187,65 +180,71 @@ function ResetControls({
             Reset today
           </Button>
         )}
-      </div>
+      </Row>
 
-      <div className="flex flex-col gap-3 rounded-[10px] border border-destructive/30 bg-destructive/[0.03] px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium text-destructive">Reset all data</p>
-            <p className="text-xs text-muted-foreground">
-              Erases all records, speaking sessions and recordings, and restarts from today.
-            </p>
-          </div>
-          {!confirmAll && (
-            <Button size="sm" variant="destructive" onClick={() => setConfirmAll(true)} disabled={disabled || busy}>
-              Reset all
-            </Button>
-          )}
-        </div>
-        {confirmAll && (
-          <div className="flex items-center justify-between gap-3 rounded-md bg-background/60 p-3">
-            <p className="text-xs text-muted-foreground">
-              This cannot be undone. Everything will be permanently deleted.
-            </p>
-            <div className="flex shrink-0 items-center gap-2">
+      <Row
+        title="Reset everything"
+        desc="Erases every record, speaking session and recording, and starts again from today."
+        danger
+      >
+        {confirmAll ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-destructive">This can&apos;t be undone. Everything is deleted for good.</p>
+            <div className="flex items-center gap-2">
               <Button size="sm" variant="destructive" onClick={doResetAll} disabled={busy}>
-                {busy ? "Resetting…" : "Delete everything"}
+                {busy ? "Deleting" : "Delete everything"}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setConfirmAll(false)} disabled={busy}>
                 Cancel
               </Button>
             </div>
           </div>
+        ) : (
+          <Button size="sm" variant="destructive" onClick={() => setConfirmAll(true)} disabled={disabled || busy}>
+            Reset everything
+          </Button>
         )}
-      </div>
-    </section>
+      </Row>
+    </>
   );
 }
 
-function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+/** Spec-sheet row: what it is on the left, the control on the right. */
+function Row({
+  title,
+  desc,
+  danger,
+  children,
+}: {
+  title: string;
+  desc?: string;
+  danger?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="flex flex-col gap-2.5">
+    <section className="grid gap-4 border-b border-border py-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] sm:gap-10">
       <div>
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {desc && <p className="text-xs text-muted-foreground">{desc}</p>}
+        <h2 className={cn("text-base font-semibold", danger && "text-destructive")}>{title}</h2>
+        {desc && <p className="mt-1 max-w-[40ch] text-sm text-muted-foreground">{desc}</p>}
       </div>
-      {children}
+      <div className="flex items-start">{children}</div>
     </section>
   );
 }
 
 function Segmented<T extends string>({
+  label,
   options,
   value,
   onChange,
 }: {
+  label: string;
   options: { value: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex rounded-md border border-border bg-card p-0.5">
+    <div role="group" aria-label={label} className="inline-flex border border-input">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -253,8 +252,9 @@ function Segmented<T extends string>({
           onClick={() => onChange(opt.value)}
           aria-pressed={value === opt.value}
           className={cn(
-            "rounded-[6px] px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            value === opt.value ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+            "h-10 px-4 text-sm font-medium outline-none transition-colors not-first:border-l not-first:border-input",
+            "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+            value === opt.value ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
         >
           {opt.label}
